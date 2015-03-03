@@ -13,7 +13,7 @@ class Buglump:
         gtk.main_quit()
     
     def __init__(self):
-        self.gladefile = "/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/glade/SearchPartGlade.glade"
+        self.gladefile = "/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython//SearchPartPython/glade/SearchPartGlade.glade"
         self.builder = gtk.Builder()
         self.builder.add_from_file(self.gladefile)
         self.builder.connect_signals(self)
