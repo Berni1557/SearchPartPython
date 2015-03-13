@@ -1,8 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.3 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-missing-image</property>
+  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
+    <property name="halign">start</property>
+    <property name="valign">start</property>
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -24,33 +44,36 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem1">
-                        <property name="label">gtk-new</property>
+                      <object class="GtkImageMenuItem" id="new_component">
+                        <property name="label">New component</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="new_component_select_cb" swapped="no"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem2">
-                        <property name="label">gtk-open</property>
+                      <object class="GtkImageMenuItem" id="open_component">
+                        <property name="label">Open component</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image2</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="open_component_select_cb" swapped="no"/>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="imagemenuitem3">
-                        <property name="label">gtk-save</property>
+                      <object class="GtkImageMenuItem" id="save_component">
+                        <property name="label">Save component</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="image">image3</property>
+                        <property name="use_stock">False</property>
+                        <signal name="activate" handler="save_component_select_cb" swapped="no"/>
                       </object>
                     </child>
                     <child>
@@ -194,6 +217,10 @@
                   <object class="GtkFrame" id="frame3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
@@ -216,10 +243,10 @@
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">•</property>
                                     <property name="text" translatable="yes">Component Height</property>
-                                    <property name="invisible_char_set">True</property>
+                                    <signal name="changed" handler="height_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">False</property>
+                                    <property name="expand">True</property>
                                     <property name="fill">True</property>
                                     <property name="position">0</property>
                                   </packing>
@@ -230,10 +257,10 @@
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">•</property>
                                     <property name="text" translatable="yes">Component Width</property>
-                                    <property name="invisible_char_set">True</property>
+                                    <signal name="changed" handler="width_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">False</property>
+                                    <property name="expand">True</property>
                                     <property name="fill">True</property>
                                     <property name="position">1</property>
                                   </packing>
@@ -250,12 +277,11 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <object class="GtkEntry" id="ID">
+                                  <object class="GtkEntry" id="CompID">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">•</property>
                                     <property name="text" translatable="yes">Component ID</property>
-                                    <property name="invisible_char_set">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -264,12 +290,12 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkEntry" id="border">
+                                  <object class="GtkEntry" id="Compborder">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">•</property>
                                     <property name="text" translatable="yes">Component border</property>
-                                    <property name="invisible_char_set">True</property>
+                                    <signal name="changed" handler="Compborder_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -301,15 +327,15 @@
                                         <property name="can_focus">False</property>
                                         <property name="halign">center</property>
                                         <child>
-                                          <object class="GtkCheckButton" id="top">
+                                          <object class="GtkCheckButton" id="Comp_top">
                                             <property name="label" translatable="yes">Top</property>
                                             <property name="use_action_appearance">False</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="use_action_appearance">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
+                                            <signal name="toggled" handler="Comp_top_changed_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -318,15 +344,15 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkCheckButton" id="right">
+                                          <object class="GtkCheckButton" id="Comp_right">
                                             <property name="label" translatable="yes">Right</property>
                                             <property name="use_action_appearance">False</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="use_action_appearance">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
+                                            <signal name="toggled" handler="Comp_right_changed_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -335,15 +361,15 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkCheckButton" id="bottom">
+                                          <object class="GtkCheckButton" id="Comp_bottom">
                                             <property name="label" translatable="yes">Bottom</property>
                                             <property name="use_action_appearance">False</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="use_action_appearance">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
+                                            <signal name="toggled" handler="Comp_bottom_changed_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -352,15 +378,15 @@
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkCheckButton" id="left">
+                                          <object class="GtkCheckButton" id="Comp_left">
                                             <property name="label" translatable="yes">Left</property>
                                             <property name="use_action_appearance">False</property>
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
-                                            <property name="use_action_appearance">False</property>
                                             <property name="xalign">0</property>
                                             <property name="draw_indicator">True</property>
+                                            <signal name="toggled" handler="Comp_left_changed_cb" swapped="no"/>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
@@ -410,6 +436,10 @@
                   <object class="GtkFrame" id="frame1">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
@@ -428,15 +458,15 @@
                                 <property name="can_focus">False</property>
                                 <property name="halign">center</property>
                                 <child>
-                                  <object class="GtkCheckButton" id="top1">
+                                  <object class="GtkCheckButton" id="OCR_top">
                                     <property name="label" translatable="yes">Top</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="OCR_top_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -445,15 +475,15 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkCheckButton" id="right1">
+                                  <object class="GtkCheckButton" id="OCR_right">
                                     <property name="label" translatable="yes">Right</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="OCR_right_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -462,15 +492,15 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkCheckButton" id="bottom1">
+                                  <object class="GtkCheckButton" id="OCR_bottom">
                                     <property name="label" translatable="yes">Bottom</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="OCR_bottom_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -479,15 +509,15 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkCheckButton" id="left1">
+                                  <object class="GtkCheckButton" id="OCR_left">
                                     <property name="label" translatable="yes">Left</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="OCR_left_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -508,19 +538,19 @@
                                 <property name="can_focus">False</property>
                                 <property name="halign">center</property>
                                 <child>
-                                  <object class="GtkCheckButton" id="ocr1">
+                                  <object class="GtkCheckButton" id="OCR">
                                     <property name="label" translatable="yes">OCR</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="OCR_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -531,13 +561,13 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="xalign">0</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="Octopart_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -553,8 +583,13 @@
                                 <property name="height_request">74</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="margin_left">5</property>
+                                <property name="margin_right">5</property>
+                                <property name="margin_top">5</property>
+                                <property name="margin_bottom">5</property>
                                 <property name="invisible_char">•</property>
                                 <property name="text" translatable="yes">ABCDEFGHIJKLMONOPQRSTUVWXYZ123456789/</property>
+                                <signal name="changed" handler="charsubset_changed_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -596,11 +631,16 @@
                         <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
-                          <object class="GtkEntry" id="entry1">
+                          <object class="GtkEntry" id="Compdescription">
                             <property name="height_request">340</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="margin_left">5</property>
+                            <property name="margin_right">5</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
                             <property name="invisible_char">•</property>
+                            <signal name="changed" handler="Compdescription_changed_cb" swapped="no"/>
                           </object>
                         </child>
                       </object>
@@ -622,7 +662,7 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
@@ -636,6 +676,8 @@
                   <object class="GtkLabel" id="component_dataset_creation">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="margin_top">10</property>
+                    <property name="margin_bottom">10</property>
                     <property name="label" translatable="yes">Component dataset creation</property>
                     <property name="justify">center</property>
                     <property name="width_chars">0</property>
@@ -647,15 +689,23 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkDrawingArea" id="image">
-                    <property name="width_request">579</property>
-                    <property name="height_request">608</property>
+                  <object class="GtkImage" id="image_main">
+                    <property name="name">image_main</property>
+                    <property name="width_request">800</property>
+                    <property name="height_request">600</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can_focus">True</property>
+                    <property name="halign">start</property>
+                    <property name="valign">start</property>
+                    <property name="margin_left">10</property>
+                    <property name="margin_right">10</property>
+                    <property name="hexpand">False</property>
+                    <property name="vexpand">False</property>
+                    <property name="stock">image_main</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -664,7 +714,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkArrow" id="back">
+                      <object class="GtkArrow" id="Im_back">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="arrow_type">left</property>
@@ -676,7 +726,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkArrow" id="next">
+                      <object class="GtkArrow" id="Im_next">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </object>
@@ -709,18 +759,20 @@
                   <object class="GtkBox" id="box15">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkCheckButton" id="select_bbox">
+                      <object class="GtkCheckButton" id="selectbbox">
                         <property name="label" translatable="yes">Select Boundingbox</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
                         <property name="margin_top">42</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="xalign">0</property>
                         <property name="draw_indicator">True</property>
+                        <signal name="toggled" handler="selectbbox_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -729,14 +781,14 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="delete_bbox">
+                      <object class="GtkButton" id="deletebbox">
                         <property name="label" translatable="yes">Delete Boundingbox</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="margin_top">85</property>
-                        <property name="use_action_appearance">False</property>
+                        <signal name="clicked" handler="deletebbox_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -745,14 +797,14 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="component_maen">
+                      <object class="GtkButton" id="compmean">
                         <property name="label" translatable="yes">Estimate component mean</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="margin_top">30</property>
-                        <property name="use_action_appearance">False</property>
+                        <signal name="clicked" handler="compmean_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -761,14 +813,15 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="add_images">
+                      <object class="GtkButton" id="addimages">
                         <property name="label" translatable="yes">Add images</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="margin_top">30</property>
-                        <property name="use_action_appearance">False</property>
+                        <property name="margin_top">100</property>
+                        <property name="margin_bottom">5</property>
+                        <signal name="clicked" handler="addimages_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -777,14 +830,14 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="delete_image">
+                      <object class="GtkButton" id="deleteimage">
                         <property name="label" translatable="yes">Delete image</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="margin_top">5</property>
-                        <property name="use_action_appearance">False</property>
+                        <signal name="clicked" handler="deleteimage_changed_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -793,11 +846,11 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="scale">
+                      <object class="GtkLabel" id="Imscale">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="margin_top">266</property>
-                        <property name="label" translatable="yes">62.8 [p/mm]</property>
+                        <property name="margin_top">150</property>
+                        <property name="label" translatable="yes">0.0 [px/mm]</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -806,11 +859,11 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="imagenumber">
+                      <object class="GtkLabel" id="Imnumber">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="margin_top">5</property>
-                        <property name="label" translatable="yes">2 / N</property>
+                        <property name="label" translatable="yes">0 / N</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -820,8 +873,9 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
+                    <property name="expand">True</property>
                     <property name="fill">True</property>
+                    <property name="pack_type">end</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -834,7 +888,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
