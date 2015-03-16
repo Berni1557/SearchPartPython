@@ -19,10 +19,12 @@
   </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
+    <property name="events">GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
     <property name="halign">start</property>
     <property name="valign">start</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
+    <signal name="key-press-event" handler="window1_key_press_event_cb" swapped="no"/>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -234,16 +236,14 @@
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox" id="box4">
+                              <object class="GtkBox" id="box12">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <object class="GtkEntry" id="height">
+                                  <object class="GtkLabel" id="Component_height_label">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="invisible_char">•</property>
-                                    <property name="text" translatable="yes">Component Height</property>
-                                    <signal name="changed" handler="height_changed_cb" swapped="no"/>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Component height [mm]:</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -252,12 +252,10 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkEntry" id="width">
+                                  <object class="GtkLabel" id="Component_width_label">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="invisible_char">•</property>
-                                    <property name="text" translatable="yes">Component Width</property>
-                                    <signal name="changed" handler="width_changed_cb" swapped="no"/>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Component width [mm]:</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -273,6 +271,80 @@
                               </packing>
                             </child>
                             <child>
+                              <object class="GtkBox" id="box4">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkEntry" id="height">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="invisible_char">•</property>
+                                    <property name="text" translatable="yes">0</property>
+                                    <signal name="changed" handler="height_changed_cb" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkEntry" id="width">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="invisible_char">•</property>
+                                    <property name="text" translatable="yes">0</property>
+                                    <signal name="changed" handler="width_changed_cb" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkBox" id="box16">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkLabel" id="Component_ID_label">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Component-ID</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="Component_border_label">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Component-border [mm]</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkBox" id="box5">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -281,7 +353,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">•</property>
-                                    <property name="text" translatable="yes">Component ID</property>
+                                    <property name="text" translatable="yes">0</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -294,7 +366,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="invisible_char">•</property>
-                                    <property name="text" translatable="yes">Component border</property>
+                                    <property name="text" translatable="yes">0</property>
                                     <signal name="changed" handler="Compborder_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
@@ -307,7 +379,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">1</property>
+                                <property name="position">3</property>
                               </packing>
                             </child>
                             <child>
@@ -410,7 +482,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
-                                <property name="position">2</property>
+                                <property name="position">4</property>
                               </packing>
                             </child>
                           </object>
@@ -689,23 +761,23 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkImage" id="image_main">
-                    <property name="name">image_main</property>
+                  <object class="GtkDrawingArea" id="drawingarea">
                     <property name="width_request">800</property>
                     <property name="height_request">600</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="halign">start</property>
-                    <property name="valign">start</property>
-                    <property name="margin_left">10</property>
-                    <property name="margin_right">10</property>
-                    <property name="hexpand">False</property>
-                    <property name="vexpand">False</property>
-                    <property name="stock">image_main</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                    <property name="margin_left">5</property>
+                    <property name="margin_right">5</property>
+                    <property name="margin_top">5</property>
+                    <property name="margin_bottom">5</property>
+                    <signal name="button-press-event" handler="drawingarea_button_press_event_cb" swapped="no"/>
+                    <signal name="draw" handler="draw_callback" swapped="no"/>
+                    <signal name="motion-notify-event" handler="drawingarea_motion_notify_event_cb" swapped="no"/>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
@@ -714,10 +786,17 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkArrow" id="Im_back">
+                      <object class="GtkButton" id="BACK">
+                        <property name="label" translatable="yes">BACK</property>
+                        <property name="height_request">50</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="arrow_type">left</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="margin_left">5</property>
+                        <property name="margin_right">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
+                        <signal name="clicked" handler="BACK_clicked_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -726,9 +805,17 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkArrow" id="Im_next">
+                      <object class="GtkButton" id="NEXT">
+                        <property name="label" translatable="yes">NEXT</property>
+                        <property name="height_request">50</property>
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="margin_left">5</property>
+                        <property name="margin_right">5</property>
+                        <property name="margin_top">5</property>
+                        <property name="margin_bottom">5</property>
+                        <signal name="clicked" handler="NEXT_clicked_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">True</property>

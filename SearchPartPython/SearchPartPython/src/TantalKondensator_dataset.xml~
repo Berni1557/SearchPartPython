@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<datasetstruct>
+   <Creation_date>14-Jul-2014</Creation_date>
+   <Componentname>TantalKondensator</Componentname>
+   <ComponentID>3</ComponentID>
+   <path>/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/TantalKondensator/</path>
+   <Componenthight>10</Componenthight>
+   <Componentwidth>4</Componentwidth>
+   <Componentborder>1</Componentborder>
+   <Imagename>
+      <item>SAM_0839.JPG</item>
+      <item>SAM_0840.JPG</item>
+      <item>SAM_0841.JPG</item>
+      <item>SAM_0842.JPG</item>
+      <item>SAM_0843.JPG</item>
+   </Imagename>
+   <Top>
+      <item>[1964 1614]</item>
+      <item/>
+      <item>[2008 1546]</item>
+      <item/>
+      <item/>
+   </Top>
+   <Bottom>
+      <item/>
+      <item>[2004 1498]</item>
+      <item/>
+      <item/>
+      <item/>
+   </Bottom>
+   <Left>
+      <item/>
+      <item/>
+      <item/>
+      <item>[1920 1372]</item>
+      <item/>
+   </Left>
+   <Right>
+      <item/>
+      <item/>
+      <item/>
+      <item>[2888 1358]</item>
+      <item>[1864 1764]</item>
+   </Right>
+   <scale_factor>
+      <item>55.5</item>
+      <item>55.5</item>
+      <item>55.5</item>
+      <item>55.5</item>
+      <item>55.5</item>
+   </scale_factor>
+</datasetstruct>
