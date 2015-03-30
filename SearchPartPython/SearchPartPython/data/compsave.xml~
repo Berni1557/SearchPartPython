@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<datasetstruct>
+	<Creation_date>Mo 23 Mär 2015 11:59:21 CET</Creation_date>
+	<Componentname>comp1</Componentname>
+	<ComponentID>0</ComponentID>
+	<Componenthight>10.0</Componenthight>
+	<Componentwidth>6.0</Componentwidth>
+	<Componentborder>0</Componentborder>
+	<Images>
+		<Imagename>
+			I1.JPG
+			<Top>
+				<item>[334.88360595703125, 268.9356994628906, 112.32121212121211, 67.392727272727285]</item>
+			</Top>
+		</Imagename>
+	</Images>
+</datasetstruct>

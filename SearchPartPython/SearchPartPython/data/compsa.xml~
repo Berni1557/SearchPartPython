@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<datasetstruct>
+	<Creation_date>Mo 23 Mär 2015 13:02:11 CET</Creation_date>
+	<Componentname>Comp1</Componentname>
+	<ComponentID>0</ComponentID>
+	<Componenthight>10.0</Componenthight>
+	<Componentwidth>6.0</Componentwidth>
+	<Componentborder>0</Componentborder>
+	<Image>
+		<Imagename>I.JPG</Imagename>
+		<Top>
+			<item>[323.01263427734375, 264.3463439941406, 120.9412121212121, 72.564727272727268]</item>
+			<item>[333.01263427734375, 264.3463439941406, 120.9412121212121, 72.564727272727268]</item>
+		</Top>
+		<Right>
+			<item>[501.09222412109375, 124.99935913085938, 72.564727272727268, 120.9412121212121]</item>
+		</Right>
+	</Image>
+	<Image>
+		<Imagename>I1.JPG</Imagename>
+		<Right>
+			<item>[363.843994140625, 310.32177734375, 67.392727272727285, 112.32121212121211]</item>
+		</Right>
+		<Left>
+			<item>[199.95867919921875, 242.33758544921875, 67.392727272727285, 112.32121212121211]</item>
+		</Left>
+	</Image>
+</datasetstruct>

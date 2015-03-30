@@ -10,5 +10,6 @@
 <path>/usr/include/opencv2</path>
 <path>/usr/local/lib/python2.7/dist-packages</path>
 <path>/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/src</path>
+<path>/usr/local/lib/python2.7/dist-packages/mlab</path>
 </pydev_pathproperty>
 </pydev_project>

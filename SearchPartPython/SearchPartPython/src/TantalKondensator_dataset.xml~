@@ -3,10 +3,10 @@
    <Creation_date>14-Jul-2014</Creation_date>
    <Componentname>TantalKondensator</Componentname>
    <ComponentID>3</ComponentID>
+   <Componenthight>6</Componenthight>
+   <Componentwidth>6</Componentwidth>
+   <Componentborder>6</Componentborder>
    <path>/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/TantalKondensator/</path>
-   <Componenthight>10</Componenthight>
-   <Componentwidth>4</Componentwidth>
-   <Componentborder>1</Componentborder>
    <Imagename>
       <item>SAM_0839.JPG</item>
       <item>SAM_0840.JPG</item>

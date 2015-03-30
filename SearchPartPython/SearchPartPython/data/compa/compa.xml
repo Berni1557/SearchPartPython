@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<datasetstruct>
+	<Creation_date>So 29 Mär 2015 14:16:45 CEST</Creation_date>
+	<Componentname>compa</Componentname>
+	<ComponentID>0</ComponentID>
+	<Componenthight>7.0</Componenthight>
+	<Componentwidth>7.0</Componentwidth>
+	<Componentborder>0</Componentborder>
+	<Componentrotation>[False, False, False, False]</Componentrotation>
+	<Componentdescription></Componentdescription>
+	<CompOCRdata>
+		<OCRrotation>[False, False, False, False]</OCRrotation>
+		<OCR>False</OCR>
+		<OCRlib>False</OCRlib>
+		<charsubset>ABCDEFGHIJKLMONOPQRSTUVWXYZ123456789/</charsubset>
+	</CompOCRdata>
+	<Image>
+		<Imagename>I.JPG</Imagename>
+		<Imagepath>/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/I.JPG</Imagepath>
+		<Top>
+			<item>[1736.7129516601562, 1295.0570678710938, 420.0, 420.0]</item>
+		</Top>
+	</Image>
+	<Image>
+		<Imagename>I1.JPG</Imagename>
+		<Imagepath>/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/I1.JPG</Imagepath>
+		<Top>
+			<item>[1749.1146850585938, 1286.6244506835938, 420.0, 420.0]</item>
+		</Top>
+	</Image>
+</datasetstruct>
