@@ -15,6 +15,7 @@ import zipfile
 import math
 from scipy import signal
 from scipy import ndimage
+#import ScaleCircle as SC
 
 class OCRdata(object):
     OCRrotation=[False,False,False,False]
@@ -60,87 +61,168 @@ class Component(object):
         #self.Componentmean=0
         sz=self.scale_corr()
         size=[sz[0],sz[1],3]
-        print 'size'
-        print size
         k=0
-        Componentmean=np.zeros(size, dtype=np.uint8)
+        Componentmean=np.zeros(size, dtype=np.float)
         for Im in self.Imagelist:
             #imagesc = cv2.resize(Im.image, (self.parent.imsize[0], self.parent.imsize[1])) 
             for b in Im.Top:
                 Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
-                Compcorr = cv2.resize(Imcomp,(size[0],size[1]))
+                Compcorr = cv2.resize(Imcomp,(size[1],size[0]))
                 Componentmean=Componentmean+Compcorr
                 k+=1
-        self.Componentmean=Componentmean/k
-        return Componentmean 
+            for b in Im.Right:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = ndimage.rotate(Imcomp, 90)
+                Compcorr = cv2.resize(Compcorr,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
+            for b in Im.Bottom:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = ndimage.rotate(Imcomp, 180)
+                Compcorr = cv2.resize(Compcorr,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
+            for b in Im.Left:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = ndimage.rotate(Imcomp, -90)
+                Compcorr = cv2.resize(Compcorr,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
+
+        if k>0:
+            Componentmean=Componentmean/k
+            self.Componentmean = np.array(Componentmean, dtype = np.uint8)
+        #self.Imagelist[0].image=self.Componentmean 
+        return self.Componentmean 
               
     def corr(self):
         Componentmean=self.create_mean()
         sc=self.scale_corr()
         sc_corr=sc[2]
+        
+        thr = 0.4
+        n_max=1
         for Im in self.Imagelist:
             del Im.Topcorr[:]
             del Im.Rightcorr[:]
             del Im.Bottomcorr[:]
             del Im.Leftcorr[:]
-            scale=sc_corr/Im.scale_factor
-            imagesc = cv2.resize(Im.image, (int(Im.image.shape[0]*scale), int(Im.image.shape[1]*scale))) 
-            thr = 0.2
             
-                        
+            #scale image
+            scale=sc_corr/Im.scale_factor
+            imagesc = cv2.resize(Im.image, (int(Im.image.shape[1]*scale), int(Im.image.shape[0]*scale)))
+            
             # Top correlation
-            Compcorr=Componentmean
-            h=sc[1];hl=int(h/2);hr=h-hl;w=sc[0];wl=int(w/2);wr=w-wl
+            h=sc[0];hl=int(h/2);hr=h-hl
+            w=sc[1];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = Componentmean
+            n=0
+            maxVal=1000
+            
+            # correlation
             corr = cv2.matchTemplate(imagesc,Compcorr,cv2.TM_CCOEFF_NORMED)
-            (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
-            roi=np.zeros([h,w],np.uint8)
-            while maxVal>thr:
-                if (maxLoc[1]-hl>0 and maxLoc[0]-wr>0 and maxLoc[1]+hr<corr.shape[0] and maxLoc[0]+wr<corr.shape[1]):
-                    corr[maxLoc[1]-hl:maxLoc[1]+hr,maxLoc[0]-wl:maxLoc[0]+wr]=roi
-                    b=[maxLoc[1],maxLoc[0],h,w]
-                    borg = [x / scale for x in b]
-                    Im.Topcorr.append(borg)
-                    (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+            
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Topcorr.append(borg)  
                 else:
-                    corr[maxLoc[1],maxLoc[0]]=0
-                    (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
-                    
+                    corr[y,x]=0
+                n=n+1  
+                
             # Right correlation
-            Compcorr = ndimage.rotate(Componentmean, 45)
-            h=sc[0];hl=int(h/2);hr=h-hl;w=sc[1];wl=int(w/2);wr=w-wl
+            h=sc[1];hl=int(h/2);hr=h-hl
+            w=sc[0];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = ndimage.rotate(Componentmean, -90)
+            n=0
+            maxVal=1000
+            
+            # correlation
             corr = cv2.matchTemplate(imagesc,Compcorr,cv2.TM_CCOEFF_NORMED)
-            (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
-            roi=np.zeros([h,w],np.uint8)
-            while maxVal>thr:
-                if (maxLoc[1]-hl>0 and maxLoc[0]-wr>0 and maxLoc[1]+hr<corr.shape[0] and maxLoc[0]+wr<corr.shape[1]):
-                    corr[maxLoc[1]-hl:maxLoc[1]+hr,maxLoc[0]-wl:maxLoc[0]+wr]=roi
-                    b=[maxLoc[1],maxLoc[0],h,w]
-                    borg = [x / scale for x in b]
-                    Im.Rightcorr.append(borg)
-                    (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Rightcorr.append(borg)  
                 else:
-                    corr[maxLoc[1],maxLoc[0]]=0
-                    (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
-                                        
-        print 'corr done'
+                    corr[y,x]=0
+                n=n+1  
+                
+            # Bottom correlation
+            h=sc[0];hl=int(h/2);hr=h-hl
+            w=sc[1];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = ndimage.rotate(Componentmean, 180)
+            n=0
+            maxVal=1000
+            
+            # correlation
+            corr = cv2.matchTemplate(imagesc,Compcorr,cv2.TM_CCOEFF_NORMED)
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Bottomcorr.append(borg)  
+                else:
+                    corr[y,x]=0
+                n=n+1  
+                
+            # Left correlation
+            h=sc[1];hl=int(h/2);hr=h-hl
+            w=sc[0];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = ndimage.rotate(Componentmean, 90)
+            n=0
+            maxVal=1000
+            
+            # correlation
+            corr = cv2.matchTemplate(imagesc,Compcorr,cv2.TM_CCOEFF_NORMED)
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Leftcorr.append(borg)  
+                else:
+                    corr[y,x]=0
+                n=n+1                     
         self.parent.update_componentdata()
         
     def scale_corr(self):
         x=self.Componentwidth*self.Componenthight
         res=15*math.exp( -( x -1)*0.05 )+5;
         return [int(self.Componenthight*res),int(self.Componentwidth*res),res]
-
-    def load_images(self):  
-        #imsize=self.parent.imsize
-        #k=0
-        for s in self.Imagename:
-            impath=self.path + s
-            Im=SPM.Imagedata(impath)
-            self.Imagelist.append(Im)
-            #self.Imagelist.insert(k, Im)
-            #k=k+1
-            #imagecv = cv2.resize(imagecv, (imsize[0], imsize[1]))
-                     
+                  
 class Handler(object):
     
     def __init__(self, parent):
@@ -164,10 +246,6 @@ class Handler(object):
         
         
     def save_component_select_cb(self, item):
-        print("Hello save!")
-        #dom=SPM.create_dom2(self.parent.DSComponent)
-        #st=dom.toprettyxml()
-        #print st
         fcd=Gtk.FileChooserDialog('Save as...', None, Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE_AS, Gtk.ResponseType.OK))
         response=fcd.run()
         if response == Gtk.ResponseType.OK:
@@ -231,9 +309,6 @@ class Handler(object):
         self.parent.DSComponent.Componentdescription=item.get_text()  
                         
     def selectbbox_changed_cb(self,item):
-        print "cursor"
-        #self.parent.selectbbox=item.get_active() 
-        #self.parent.Cursor=Gdk.Cursor(Gdk.CursorType.CIRCLE)
         win = self.parent.drawarea.get_window()
         if item.get_active():
             cursor = Gdk.Cursor(Gdk.CursorType.HAND1)
@@ -242,23 +317,14 @@ class Handler(object):
             cursor = Gdk.Cursor(Gdk.CursorType.LEFT_PTR)
             win.set_cursor(cursor)
         self.parent.update_componentdata()
-        #self.parent.windowbox.window.set_cursor(cursor)
-        
-    def deletebbox_changed_cb(self,item):
-        print('deletebbox')  
-        #self.parent.deletebbox=item.get_active()      
         
     def compmean_changed_cb(self,item):
         self.parent.selectbbox.set_active(True) 
         self.parent.DSComponent.corr()
-        #self.parent.deletebbox=item.get_active() import Image
         
     def addimages_changed_cb(self,item):
-        print('addimages')  
         fcd=Gtk.FileChooserDialog('Open...', None, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
         fcd.set_select_multiple(True)
-        #filenames = fcd.get_filenames()
-        #print filenames
         response=fcd.run()
         if response == Gtk.ResponseType.OK:
             filenames=fcd.get_filenames()
@@ -267,8 +333,10 @@ class Handler(object):
             for f in filenames:
                 k=k+1
                 Imname=os.path.basename(f)
-                self.parent.DSComponent.Imagename.append(Imname)
-                self.parent.DSComponent.Imagelist.append(SPM.Imagedata(f))
+                Im=SPM.Imagedata(f)
+                if not Im.scale_factor==False:
+                    self.parent.DSComponent.Imagename.append(Imname)
+                    self.parent.DSComponent.Imagelist.append(Im)
             self.parent.update_componentdata()
         
         
@@ -277,11 +345,8 @@ class Handler(object):
         self.parent.update_componentdata()
         
     def NEXT_clicked_cb(self,item):
-        #print self.parent.imagecounter.imagenumber_max
-        print self.parent.imagecounter.imagenumber
         if(self.parent.imagecounter.imagenumber<self.parent.imagecounter.imagenumber_max):
             self.parent.imagecounter.imagenumber=self.parent.imagecounter.imagenumber+1;
-        print self.parent.imagecounter.imagenumber
         self.parent.update_componentdata()
         self.parent.drawarea.queue_draw()  
 
@@ -289,102 +354,107 @@ class Handler(object):
         if(self.parent.imagecounter.imagenumber>0):
             self.parent.imagecounter.imagenumber=self.parent.imagecounter.imagenumber-1;
         self.parent.update_componentdata()
-    
-    def drawingarea_motion_notify_event_cb(self,item,event):
-        print event.x
-        print 'motion' 
         
     def drawingarea_button_press_event_cb(self,item,event):
-        print 'click'
+        x=event.x/self.parent.scale
+        y=event.y/self.parent.scale
         if(len(self.parent.DSComponent.Imagelist)>0):
-            if self.parent.bboxrot[0]:  # Top
-                hight=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                width=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                h2=int(hight/2)
-                w2=int(width/2)
-                x=event.x/self.parent.scale
-                y=event.y/self.parent.scale
-                bbox=[x-h2,y-w2,hight,width]
-                if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top)==0):
-                    self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top.append(bbox)
-                else:
-                    bboxfound=False 
-                    for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top:
-                        if (event.x>b[0] and event.x<b[0]+hight and event.y>b[1] and event.y<b[1]+width):
-                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top.remove(b)
-                            bboxfound=True
-                    if bboxfound==False:
-                        print 'bboxfound-false'
+            if not self.parent.selectbbox.get_active():
+                if self.parent.bboxrot[0]:  # Top
+                    hight=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    width=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    h2=int(hight/2)
+                    w2=int(width/2)
+                    bbox=[x-w2,y-h2,width,hight]
+                    if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top)==0):
                         self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top.append(bbox)
-                self.parent.drawarea.queue_draw()
-            if self.parent.bboxrot[1]:  # Right
-                width=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                hight=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                h2=int(hight/2)
-                w2=int(width/2)
-                x=event.x/self.parent.scale
-                y=event.y/self.parent.scale
-                bbox=[x-h2,y-w2,hight,width]
-                if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right)==0):
-                    self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right.append(bbox)
-                else:
-                    bboxfound=False 
-                    for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right:
-                        if (event.x>b[0] and event.x<b[0]+hight and event.y>b[1] and event.y<b[1]+width):
-                            print
-                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right.remove(b)
-                            bboxfound=True
-                    if bboxfound==False:
-                        print 'bboxfound-false'
+                    else:
+                        bboxfound=False 
+                        for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top:
+                            if (x>b[0] and x<b[0]+width and y>b[1] and y<b[1]+hight):
+                                self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top.remove(b)
+                                bboxfound=True
+                        if bboxfound==False:
+                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top.append(bbox)
+                    self.parent.drawarea.queue_draw()
+                if self.parent.bboxrot[1]:  # Right
+                    width=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    hight=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    h2=int(hight/2)
+                    w2=int(width/2)
+                    bbox=[x-w2,y-h2,width,hight]
+                    if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right)==0):
                         self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right.append(bbox)
-                self.parent.drawarea.queue_draw()                    
-            if self.parent.bboxrot[2]:  # Bottom
+                    else:
+                        bboxfound=False 
+                        for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right:
+                            if (x>b[0] and x<b[0]+width and y>b[1] and y<b[1]+hight):
+                                self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right.remove(b)
+                                bboxfound=True
+                        if bboxfound==False:
+                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right.append(bbox)
+                    self.parent.drawarea.queue_draw()                    
+                if self.parent.bboxrot[2]:  # Bottom
+                    hight=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    width=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    h2=int(hight/2)
+                    w2=int(width/2)
+                    bbox=[x-w2,y-h2,width,hight]
+                    if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom)==0):
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.append(bbox)
+                    else:
+                        bboxfound=False 
+                        for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom:
+                            if (x>b[0] and x<b[0]+width and y>b[1] and y<b[1]+hight):
+                                self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.remove(b)
+                                bboxfound=True
+                        if bboxfound==False:
+                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.append(bbox)
+                    self.parent.drawarea.queue_draw()              
+                if self.parent.bboxrot[3]:  # Left
+                    width=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    hight=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
+                    h2=int(hight/2)
+                    w2=int(width/2)
+                    bbox=[x-w2,y-h2,width,hight]
+                    if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left)==0):
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.append(bbox)
+                    else:
+                        bboxfound=False 
+                        for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left:
+                            if (x>b[0] and x<b[0]+width and y>b[1] and y<b[1]+hight):
+                                self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.remove(b)
+                                bboxfound=True
+                        if bboxfound==False:
+                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.append(bbox)                  
+            else:
                 hight=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
                 width=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                h2=int(hight/2)
-                w2=int(width/2)
-                x=event.x/self.parent.scale
-                y=event.y/self.parent.scale
-                bbox=[x-h2,y-w2,hight,width]
-                if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom)==0):
-                    self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.append(bbox)
-                else:
-                    bboxfound=False 
-                    for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom:
-                        if (event.x>b[0] and event.x<b[0]+hight and event.y>b[1] and event.y<b[1]+width):
-                            print
-                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.remove(b)
-                            bboxfound=True
-                    if bboxfound==False:
-                        print 'bboxfound-false'
-                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.append(bbox)
-                self.parent.drawarea.queue_draw()              
-            if self.parent.bboxrot[3]:  # Left
-                width=self.parent.DSComponent.Componenthight * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                hight=self.parent.DSComponent.Componentwidth * self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].scale_factor
-                h2=int(hight/2)
-                w2=int(width/2)
-                x=event.x/self.parent.scale
-                y=event.y/self.parent.scale
-                bbox=[x-h2,y-w2,hight,width]
-                if(len(self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left)==0):
-                    self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.append(bbox)
-                else:
-                    bboxfound=False 
-                    for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left:
-                        if (event.x>b[0] and event.x<b[0]+hight and event.y>b[1] and event.y<b[1]+width):
-                            print
-                            self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.remove(b)
-                            bboxfound=True
-                    if bboxfound==False:
-                        print 'bboxfound-false'
-                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.append(bbox)
-                self.parent.drawarea.queue_draw()                  
-
+                bboxfound=False 
+                for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Topcorr:
+                    if (x>b[0] and x<b[0]+hight and y>b[1] and y<b[1]+width):
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Topcorr.remove(b)
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Top.append(b)
+                        
+                for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Rightcorr:
+                    if (x>b[0] and x<b[0]+hight and y>b[1] and y<b[1]+width):
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Rightcorr.remove(b)
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Right.append(b)
+                        
+                for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottomcorr:
+                    if (x>b[0] and x<b[0]+hight and y>b[1] and y<b[1]+width):
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottomcorr.remove(b)
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottom.append(b)
+                        
+                for b in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Leftcorr:
+                    if (x>b[0] and x<b[0]+hight and y>b[1] and y<b[1]+width):
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Leftcorr.remove(b)
+                        self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Left.append(b)
+            self.parent.drawarea.queue_draw()        
+                
+                
     def draw_callback (self, wid, cr):
-        print len(self.parent.DSComponent.Imagelist)
         if len(self.parent.DSComponent.Imagelist)>0:
-            print self.parent.imagecounter.imagenumber
             imagecv=self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].image
             imagecv = cv2.resize(imagecv, (self.parent.imsize[0], self.parent.imsize[1])) 
             imagegtk=SPM.convertCV2GTK(imagecv)
@@ -427,20 +497,25 @@ class Handler(object):
                     cr.set_source_rgb(255, 255, 255)
                     cr.rectangle(b[0], b[1], b[2], b[3]);
                     cr.stroke()
-                    
+                for borg in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Bottomcorr:
+                    b = [x * self.parent.scale for x in borg]
+                    cr.set_source_rgb(255, 255, 255)
+                    cr.rectangle(b[0], b[1], b[2], b[3]);
+                    cr.stroke()                          
+                for borg in self.parent.DSComponent.Imagelist[self.parent.imagecounter.imagenumber].Leftcorr:
+                    b = [x * self.parent.scale for x in borg]
+                    cr.set_source_rgb(255, 255, 255)
+                    cr.rectangle(b[0], b[1], b[2], b[3]);
+                    cr.stroke()                    
     
     def window1_key_press_event_cb(self,item,event):
         if(event.keyval==65362):
-            print('top')
             self.parent.bboxrot=[True,False,False,False]
         elif(event.keyval==65363):
-            print('right')
             self.parent.bboxrot=[False,True,False,False]
         elif(event.keyval==65364):
-            print('bottom')
             self.parent.bboxrot=[False,False,True,False]
         elif(event.keyval==65361):
-            print('left')
             self.parent.bboxrot=[False,False,False,True]
                                             
 class imagecounter(object): 
@@ -460,13 +535,12 @@ class DSclass(object):
     compmean=False
     addimages=False
     deleteimage=False
-    DSComponent=Component(None,None)
+    #DSComponent=Component(None,None)
     scale=0.2;
     imsize=[int(4000*scale),int(3000*scale)]
     bboxrot=[True,False,False,False]
     
     def __init__(self):
-        print("Start")
         self.builder = Gtk.Builder()
         self.builder.add_from_file("/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/glade/SearchPartGlade.glade")
         self.builder.connect_signals(Handler(self))
@@ -500,37 +574,19 @@ class DSclass(object):
         self.Imageback = self.builder.get_object("Imageback")
         self.Imagenext = self.builder.get_object("Imagenext")
         
-        #self.image = self.builder.get_object("image_main")
         self.drawarea=self.builder.get_object("drawingarea")
         
         self.progressbar=self.builder.get_object("progressbar")
         self.progressbar.set_fraction(0.5)
-        #Gtk.Widget.set_events(self.drawarea, Gdk.Event.motion)
-        #self.drawarea.set_eve
         
-        #self.drawarea.set_events(Gdk.POINTER_MOTION_MASK| Gdk.POINTER_MOTION_HINT_MASK)
-        
-        
+        self.DSComponent=Component(self,None)
+
         self.imagecounter=imagecounter();
 
         self.window.show_all()
         self.reset()
-        
-        #self.motion=GDk.Event.MotionEvent()
-        
-    #def motion_notify_event_cb (self.image,GdkEventMotion *event,gpointer        data)    
-        #print 'motion'
-        #cr.set_source_rgb(0, 0, 0)
-        #cr.set_line_width(0.5)
-        
-         
+
     def update_componentdata(self):
-        #print self.DSComponent.Componenthight
-        #self.height.set_text('Hight: ' + str(self.DSComponent.Componenthight) + ' mm')
-        #self.width.set_text('Width: ' + str(self.DSComponent.Componentwidth) + ' mm')
-        #self.CompComponent.ComponentnameID.set_text('ID: ' + str(self.DSComponent.ComponentID))
-        #self.Compborder.set_text('Border: ' + str(self.DSComponent.Componentborder) + ' mm')
-        
         self.imagecounter.imagenumber_max=len(self.DSComponent.Imagelist)-1
         
         if(self.imagecounter.imagenumber>self.imagecounter.imagenumber_max):
@@ -560,13 +616,12 @@ class DSclass(object):
         
         
         self.Imnumber.set_label(self.imagecounter.tostring()) 
-        if self.imagecounter.imagenumber_max>0:
+
+        if len(self.DSComponent.Imagelist)>0:
             self.Imscale.set_label(str(self.DSComponent.Imagelist[self.imagecounter.imagenumber].scale_factor) + ' [p/mm]') 
         self.drawarea.queue_draw()
 
     def reset(self):
-        print("Reset")
-        
         height=self.builder.get_object('height')
         height.set_text('0')
         width=self.builder.get_object('width')
@@ -612,6 +667,8 @@ class DSclass(object):
         
         Imnumber=self.builder.get_object('Imnumber')
         Imnumber.set_label(self.imagecounter.tostring()) 
+        
+        self.DSComponent=Component(self,None)
         
 def isfloat(x):
     try:

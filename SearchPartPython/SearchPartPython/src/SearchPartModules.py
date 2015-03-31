@@ -10,6 +10,7 @@ import time
 import os
 import zipfile
 import shutil
+import ScaleCircle as SC
 #from mlabwrap import mlab
 
 
@@ -30,10 +31,16 @@ class Imagedata(object):
         self.Bottomcorr=list()
         self.Leftcorr=list()
         print 'Start scaling'
-        #sc=mlab.evalmat('scaleCircle',self.image)
+        #sc=mlab.evalmat('ScaleCircle',self.image)
         
-        sc=60.0
+        Circle=SC.ScaleCircle(self.image)
+        sc=Circle.scale()
+
+
+        #sc=60.0
         self.scale_factor=sc
+        print 'sc: '
+        print sc
         
         #self.scale_factor=sc[0][0]
         print 'End scaling'

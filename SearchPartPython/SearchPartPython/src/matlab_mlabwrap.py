@@ -29,7 +29,7 @@ print "hello"
 
 #scale_factor=mlab.scaleCirclep(uint8(source))
 
-#scale_factor=mlab.evalmat('scaleCircle',source)
+#scale_factor=mlab.evalmat('ScaleCircle',source)
 #x,y=mlab.matmult(3,5, nout=2)
 
 

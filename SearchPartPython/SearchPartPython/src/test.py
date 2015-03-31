@@ -1,83 +1,16 @@
-from xml.dom.minidom import *
-import sys
+import numpy as np
+import scipy.spatial
 
-path="/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/src/TantalKondensator_dataset_V02.xml"
-def create_dom(component):
-    dom = Document();
-    base = dom.createElement('datasetstruct')
-    dom.appendChild(base)
-    
-    node1 = dom.createElement('Creation_date')
-    text1 = dom.createTextNode("01.01.2005")
-    node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)
-    
-    node1 = dom.createElement('Componentname')
-    text1 = dom.createTextNode("01.01.2005")
-    node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)    
-    
-    node1 = dom.createElement('Componenthight')
-    text1 = dom.createTextNode("01.01.2005")
-    node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)
-    
-    node1 = dom.createElement('Componentwidth')
-    text1 = dom.createTextNode("01.01.2005")
-    node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)  
-    
-    node1 = dom.createElement('Componentborder')
-    text1 = dom.createTextNode("01.01.2005")
-    node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)       
-    
-    node1 = dom.createElement('path')
-    text1 = dom.createTextNode("01.01.2005")
-    node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)  
-    
-    node1 = dom.createElement('Imagename')
-    
-    node2 = dom.createElement("item")
-    text2 = dom.createTextNode("SAM_0839.JPG")
-    node2.appendChild(text2)
-    node1.appendChild(node2)
-    
-    node2 = dom.createElement("item")
-    text2 = dom.createTextNode("SAM_0840.JPG")
-    node2.appendChild(text2)
-    node1.appendChild(node2)
-    
-    dom.childNodes[0].appendChild(node1)
-   
-    
-    return dom
+X = np.array([[1,2], [1,2], [3,4],[6,7],[6,7]])
+dist_matrix = scipy.spatial.distance.pdist(X)
+a=scipy.spatial.distance.squareform(dist_matrix)
+np.fill_diagonal(a, np.inf)
+b = a.argmin(axis=0)
 
+#mymin = np.min(a)
 
-"""
-doc = Document();
-node1 = doc.createElement('datasetstruct')
-doc.appendChild(node1)
+print a
+min_positions = np.where(a == a.min())
 
-node2 = doc.createElement('Creation_date')
-
-doc.childNodes[0].appendChild(node2)
-
-description = doc.createTextNode("A quiet, scenic park with lots of wildlife.")
-
-doc.childNodes[0].childNodes[0].appendChild(description)
-"""
-dom=create_dom("datasetstruct")
-
-
-
-
-st=dom.toprettyxml()
-print st
-
-
-f = open(path, 'w')
-f.write(st)
-f.close()
-
+print min_positions
+#print b
