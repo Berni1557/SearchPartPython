@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 import cv2
 import numpy as np
 import scipy.spatial
@@ -16,6 +16,7 @@ class ScaleCircle(object):
         distance_max=10;
         
         img=self.image;
+
         # resize image for processing
         sc=2000/float(img.shape[1])         
         imgres = cv2.resize(img, (int(img.shape[1]*sc), int(img.shape[0]*sc))) 

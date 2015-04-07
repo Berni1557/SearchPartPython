@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 import cv2
@@ -119,6 +120,10 @@ class Component(object):
             Compcorr = Componentmean
             n=0
             maxVal=1000
+            
+            # RGB to HSV
+            cv2.cvtColor(imagesc, imagesc, cv2.cv.CV_BGR2HSV);
+            cv2.cvtColor(Compcorr, Compcorr, cv2.cv.CV_BGR2HSV);
             
             # correlation
             corr = cv2.matchTemplate(imagesc,Compcorr,cv2.TM_CCOEFF_NORMED)

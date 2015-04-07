@@ -17,6 +17,7 @@ image1 = cv2.resize(image,(newx,newy))
 image2 = image1[280:340, 330:390]
 #cv2.resize(template, template, 0, 0.5, 0.5, cv2.INTER_NEAREST);
 
+
 #image = cv2.cv.fromarray(image)
 #meanI=cv2.mean(image)
 #image1 = image - meanI[0]

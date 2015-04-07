@@ -14,7 +14,7 @@ import zipfile
 
 
 filepath="/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/compsa.zip"
-path="/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/test1/"
+path="/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/GTKfile/"
 
 di, base_filename = os.path.split(filepath)
 
