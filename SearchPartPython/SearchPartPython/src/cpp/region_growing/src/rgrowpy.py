@@ -5,7 +5,6 @@ import numpy as np
 import cv2
 from numpy import double
 
-import time
 
 #Iin = cv2.imread("/home/bernifoellmer/workspace/cython_image/I1.png")
 Iin = cv2.imread("/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/T.JPG")
@@ -22,11 +21,11 @@ G=np.zeros((height,width),dtype=np.uint8)
 I1=Iin.astype(double)
 I2=G.astype(double)
 
-start = time.time()
-for x in range(0, 1000):
-    out=rgrowmod.rgrow_func(I1,I2)
-end = time.time()
-print end - start
+sx=31
+sy=40
+threshold=30
+out=rgrowmod.rgrow_func(I1,I2,sx,sy,threshold)
+
 
 I1o = I1.astype(np.uint8)
 I2o = I2.astype(np.uint8)

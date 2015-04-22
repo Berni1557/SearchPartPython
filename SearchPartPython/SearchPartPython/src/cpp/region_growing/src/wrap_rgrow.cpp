@@ -928,6 +928,8 @@ static Py_ssize_t __Pyx_minusones[] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
 static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
 
+static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
+
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 #if CYTHON_CCOMPLEX
@@ -1028,8 +1030,6 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
     #endif
 #endif
 
-static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
-
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
@@ -1091,7 +1091,7 @@ int __pyx_module_is_main_rgrowmod = 0;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_RuntimeError;
-static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_source1, PyArrayObject *__pyx_v_dest1); /* proto */
+static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_source1, PyArrayObject *__pyx_v_dest1, PyObject *__pyx_v_sx, PyObject *__pyx_v_sy, PyObject *__pyx_v_threshold); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static char __pyx_k_B[] = "B";
@@ -1173,8 +1173,8 @@ static PyObject *__pyx_codeobj__8;
 /* "wrap_rgrow.pyx":11
  *     int rgrow(double* source1, double* dest1, int m, int n, int sx, int sy, int threshold);
  * 
- * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1):             # <<<<<<<<<<<<<<
- *     cdef int m, n, sx, sy, threshold
+ * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1, sx, sy, threshold):             # <<<<<<<<<<<<<<
+ *     cdef int m, n
  *     m, n = source1.shape[1], source1.shape[0]
  */
 
@@ -1184,6 +1184,9 @@ static PyMethodDef __pyx_mdef_8rgrowmod_1rgrow_func = {"rgrow_func", (PyCFunctio
 static PyObject *__pyx_pw_8rgrowmod_1rgrow_func(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_source1 = 0;
   PyArrayObject *__pyx_v_dest1 = 0;
+  PyObject *__pyx_v_sx = 0;
+  PyObject *__pyx_v_sy = 0;
+  PyObject *__pyx_v_threshold = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1191,12 +1194,15 @@ static PyObject *__pyx_pw_8rgrowmod_1rgrow_func(PyObject *__pyx_self, PyObject *
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("rgrow_func (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_source1,&__pyx_n_s_dest1,0};
-    PyObject* values[2] = {0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_source1,&__pyx_n_s_dest1,&__pyx_n_s_sx,&__pyx_n_s_sy,&__pyx_n_s_threshold,0};
+    PyObject* values[5] = {0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         case  0: break;
@@ -1210,24 +1216,45 @@ static PyObject *__pyx_pw_8rgrowmod_1rgrow_func(PyObject *__pyx_self, PyObject *
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_dest1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 5, 5, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  2:
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sx)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 5, 5, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  3:
+        if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_sy)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 5, 5, 3); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  4:
+        if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_threshold)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 5, 5, 4); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "rgrow_func") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
     __pyx_v_source1 = ((PyArrayObject *)values[0]);
     __pyx_v_dest1 = ((PyArrayObject *)values[1]);
+    __pyx_v_sx = values[2];
+    __pyx_v_sy = values[3];
+    __pyx_v_threshold = values[4];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("rgrow_func", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("rgrowmod.rgrow_func", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1235,7 +1262,7 @@ static PyObject *__pyx_pw_8rgrowmod_1rgrow_func(PyObject *__pyx_self, PyObject *
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_source1), __pyx_ptype_5numpy_ndarray, 1, "source1", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_dest1), __pyx_ptype_5numpy_ndarray, 1, "dest1", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_8rgrowmod_rgrow_func(__pyx_self, __pyx_v_source1, __pyx_v_dest1);
+  __pyx_r = __pyx_pf_8rgrowmod_rgrow_func(__pyx_self, __pyx_v_source1, __pyx_v_dest1, __pyx_v_sx, __pyx_v_sy, __pyx_v_threshold);
 
   /* function exit code */
   goto __pyx_L0;
@@ -1246,12 +1273,9 @@ static PyObject *__pyx_pw_8rgrowmod_1rgrow_func(PyObject *__pyx_self, PyObject *
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_source1, PyArrayObject *__pyx_v_dest1) {
+static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_source1, PyArrayObject *__pyx_v_dest1, PyObject *__pyx_v_sx, PyObject *__pyx_v_sy, PyObject *__pyx_v_threshold) {
   int __pyx_v_m;
   int __pyx_v_n;
-  int __pyx_v_sx;
-  int __pyx_v_sy;
-  int __pyx_v_threshold;
   int __pyx_v_a;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_dest1;
   __Pyx_Buffer __pyx_pybuffer_dest1;
@@ -1267,7 +1291,9 @@ static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_sel
   int __pyx_t_6;
   long __pyx_t_7;
   long __pyx_t_8;
-  PyObject *__pyx_t_9 = NULL;
+  int __pyx_t_9;
+  int __pyx_t_10;
+  PyObject *__pyx_t_11 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1292,11 +1318,11 @@ static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_sel
   __pyx_pybuffernd_dest1.diminfo[0].strides = __pyx_pybuffernd_dest1.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_dest1.diminfo[0].shape = __pyx_pybuffernd_dest1.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_dest1.diminfo[1].strides = __pyx_pybuffernd_dest1.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_dest1.diminfo[1].shape = __pyx_pybuffernd_dest1.rcbuffer->pybuffer.shape[1];
 
   /* "wrap_rgrow.pyx":13
- * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1):
- *     cdef int m, n, sx, sy, threshold
+ * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1, sx, sy, threshold):
+ *     cdef int m, n
  *     m, n = source1.shape[1], source1.shape[0]             # <<<<<<<<<<<<<<
- *     sx=31
- *     sy=22
+ *     a=rgrow(&source1[0,0,0], &dest1[0,0],m,n,sx,sy,threshold)
+ *     return a
  */
   __pyx_t_1 = (__pyx_v_source1->dimensions[1]);
   __pyx_t_2 = (__pyx_v_source1->dimensions[0]);
@@ -1304,35 +1330,8 @@ static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_sel
   __pyx_v_n = __pyx_t_2;
 
   /* "wrap_rgrow.pyx":14
- *     cdef int m, n, sx, sy, threshold
+ *     cdef int m, n
  *     m, n = source1.shape[1], source1.shape[0]
- *     sx=31             # <<<<<<<<<<<<<<
- *     sy=22
- *     threshold=30
- */
-  __pyx_v_sx = 31;
-
-  /* "wrap_rgrow.pyx":15
- *     m, n = source1.shape[1], source1.shape[0]
- *     sx=31
- *     sy=22             # <<<<<<<<<<<<<<
- *     threshold=30
- *     a=rgrow(&source1[0,0,0], &dest1[0,0],m,n,sx,sy,threshold)
- */
-  __pyx_v_sy = 22;
-
-  /* "wrap_rgrow.pyx":16
- *     sx=31
- *     sy=22
- *     threshold=30             # <<<<<<<<<<<<<<
- *     a=rgrow(&source1[0,0,0], &dest1[0,0],m,n,sx,sy,threshold)
- *     return a
- */
-  __pyx_v_threshold = 30;
-
-  /* "wrap_rgrow.pyx":17
- *     sy=22
- *     threshold=30
  *     a=rgrow(&source1[0,0,0], &dest1[0,0],m,n,sx,sy,threshold)             # <<<<<<<<<<<<<<
  *     return a
  */
@@ -1354,7 +1353,7 @@ static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_sel
   } else if (unlikely(__pyx_t_5 >= __pyx_pybuffernd_source1.diminfo[2].shape)) __pyx_t_6 = 2;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_t_7 = 0;
   __pyx_t_8 = 0;
@@ -1369,33 +1368,36 @@ static PyObject *__pyx_pf_8rgrowmod_rgrow_func(CYTHON_UNUSED PyObject *__pyx_sel
   } else if (unlikely(__pyx_t_8 >= __pyx_pybuffernd_dest1.diminfo[1].shape)) __pyx_t_6 = 1;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_v_a = rgrow((&(*__Pyx_BufPtrCContig3d(double *, __pyx_pybuffernd_source1.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_source1.diminfo[0].strides, __pyx_t_4, __pyx_pybuffernd_source1.diminfo[1].strides, __pyx_t_5, __pyx_pybuffernd_source1.diminfo[2].strides))), (&(*__Pyx_BufPtrCContig2d(double *, __pyx_pybuffernd_dest1.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_dest1.diminfo[0].strides, __pyx_t_8, __pyx_pybuffernd_dest1.diminfo[1].strides))), __pyx_v_m, __pyx_v_n, __pyx_v_sx, __pyx_v_sy, __pyx_v_threshold);
+  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_v_sx); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_sy); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_v_threshold); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_v_a = rgrow((&(*__Pyx_BufPtrCContig3d(double *, __pyx_pybuffernd_source1.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_source1.diminfo[0].strides, __pyx_t_4, __pyx_pybuffernd_source1.diminfo[1].strides, __pyx_t_5, __pyx_pybuffernd_source1.diminfo[2].strides))), (&(*__Pyx_BufPtrCContig2d(double *, __pyx_pybuffernd_dest1.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_dest1.diminfo[0].strides, __pyx_t_8, __pyx_pybuffernd_dest1.diminfo[1].strides))), __pyx_v_m, __pyx_v_n, __pyx_t_6, __pyx_t_9, __pyx_t_10);
 
-  /* "wrap_rgrow.pyx":18
- *     threshold=30
+  /* "wrap_rgrow.pyx":15
+ *     m, n = source1.shape[1], source1.shape[0]
  *     a=rgrow(&source1[0,0,0], &dest1[0,0],m,n,sx,sy,threshold)
  *     return a             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_a); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  __pyx_r = __pyx_t_9;
-  __pyx_t_9 = 0;
+  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_a); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_11);
+  __pyx_r = __pyx_t_11;
+  __pyx_t_11 = 0;
   goto __pyx_L0;
 
   /* "wrap_rgrow.pyx":11
  *     int rgrow(double* source1, double* dest1, int m, int n, int sx, int sy, int threshold);
  * 
- * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1):             # <<<<<<<<<<<<<<
- *     cdef int m, n, sx, sy, threshold
+ * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1, sx, sy, threshold):             # <<<<<<<<<<<<<<
+ *     cdef int m, n
  *     m, n = source1.shape[1], source1.shape[0]
  */
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_XDECREF(__pyx_t_11);
   { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
     __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_dest1.rcbuffer->pybuffer);
@@ -3547,14 +3549,14 @@ static int __Pyx_InitCachedConstants(void) {
   /* "wrap_rgrow.pyx":11
  *     int rgrow(double* source1, double* dest1, int m, int n, int sx, int sy, int threshold);
  * 
- * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1):             # <<<<<<<<<<<<<<
- *     cdef int m, n, sx, sy, threshold
+ * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1, sx, sy, threshold):             # <<<<<<<<<<<<<<
+ *     cdef int m, n
  *     m, n = source1.shape[1], source1.shape[0]
  */
-  __pyx_tuple__7 = PyTuple_Pack(8, __pyx_n_s_source1, __pyx_n_s_dest1, __pyx_n_s_m, __pyx_n_s_n, __pyx_n_s_sx, __pyx_n_s_sy, __pyx_n_s_threshold, __pyx_n_s_a); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__7 = PyTuple_Pack(8, __pyx_n_s_source1, __pyx_n_s_dest1, __pyx_n_s_sx, __pyx_n_s_sy, __pyx_n_s_threshold, __pyx_n_s_m, __pyx_n_s_n, __pyx_n_s_a); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
-  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(2, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_bernifoellmer_Studium_Sear, __pyx_n_s_rgrow_func, 11, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(5, 0, 8, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_bernifoellmer_Studium_Sear, __pyx_n_s_rgrow_func, 11, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -3681,8 +3683,8 @@ PyMODINIT_FUNC PyInit_rgrowmod(void)
   /* "wrap_rgrow.pyx":11
  *     int rgrow(double* source1, double* dest1, int m, int n, int sx, int sy, int threshold);
  * 
- * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1):             # <<<<<<<<<<<<<<
- *     cdef int m, n, sx, sy, threshold
+ * def rgrow_func(np.ndarray[double, ndim=3, mode="c"] source1, np.ndarray[double, ndim=2, mode="c"] dest1, sx, sy, threshold):             # <<<<<<<<<<<<<<
+ *     cdef int m, n
  *     m, n = source1.shape[1], source1.shape[0]
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8rgrowmod_1rgrow_func, NULL, __pyx_n_s_rgrowmod); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -4966,6 +4968,122 @@ bad:
     return module;
 }
 
+#define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)       \
+    {                                                                     \
+        func_type value = func_value;                                     \
+        if (sizeof(target_type) < sizeof(func_type)) {                    \
+            if (unlikely(value != (func_type) (target_type) value)) {     \
+                func_type zero = 0;                                       \
+                if (is_unsigned && unlikely(value < zero))                \
+                    goto raise_neg_overflow;                              \
+                else                                                      \
+                    goto raise_overflow;                                  \
+            }                                                             \
+        }                                                                 \
+        return (target_type) value;                                       \
+    }
+
+#if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3
+ #if CYTHON_USE_PYLONG_INTERNALS
+  #include "longintrepr.h"
+ #endif
+#endif
+
+static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
+    const int neg_one = (int) -1, const_zero = 0;
+    const int is_unsigned = neg_one > const_zero;
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(int) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(int, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (int) val;
+        }
+    } else
+#endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3
+ #if CYTHON_USE_PYLONG_INTERNALS
+            switch (Py_SIZE(x)) {
+                case  0: return 0;
+                case  1: __PYX_VERIFY_RETURN_INT(int, digit, ((PyLongObject*)x)->ob_digit[0]);
+            }
+ #endif
+#endif
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+            if (sizeof(int) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT(int, unsigned long, PyLong_AsUnsignedLong(x))
+            } else if (sizeof(int) <= sizeof(unsigned long long)) {
+                __PYX_VERIFY_RETURN_INT(int, unsigned long long, PyLong_AsUnsignedLongLong(x))
+            }
+        } else {
+#if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3
+ #if CYTHON_USE_PYLONG_INTERNALS
+            switch (Py_SIZE(x)) {
+                case  0: return 0;
+                case  1: __PYX_VERIFY_RETURN_INT(int,  digit, +(((PyLongObject*)x)->ob_digit[0]));
+                case -1: __PYX_VERIFY_RETURN_INT(int, sdigit, -(sdigit) ((PyLongObject*)x)->ob_digit[0]);
+            }
+ #endif
+#endif
+            if (sizeof(int) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT(int, long, PyLong_AsLong(x))
+            } else if (sizeof(int) <= sizeof(long long)) {
+                __PYX_VERIFY_RETURN_INT(int, long long, PyLong_AsLongLong(x))
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            int val;
+            PyObject *v = __Pyx_PyNumber_Int(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (int) -1;
+        }
+    } else {
+        int val;
+        PyObject *tmp = __Pyx_PyNumber_Int(x);
+        if (!tmp) return (int) -1;
+        val = __Pyx_PyInt_As_int(tmp);
+        Py_DECREF(tmp);
+        return val;
+    }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to int");
+    return (int) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to int");
+    return (int) -1;
+}
+
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
     const int neg_one = (int) -1, const_zero = 0;
     const int is_unsigned = neg_one > const_zero;
@@ -5231,122 +5349,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
         }
     #endif
 #endif
-
-#define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)       \
-    {                                                                     \
-        func_type value = func_value;                                     \
-        if (sizeof(target_type) < sizeof(func_type)) {                    \
-            if (unlikely(value != (func_type) (target_type) value)) {     \
-                func_type zero = 0;                                       \
-                if (is_unsigned && unlikely(value < zero))                \
-                    goto raise_neg_overflow;                              \
-                else                                                      \
-                    goto raise_overflow;                                  \
-            }                                                             \
-        }                                                                 \
-        return (target_type) value;                                       \
-    }
-
-#if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3
- #if CYTHON_USE_PYLONG_INTERNALS
-  #include "longintrepr.h"
- #endif
-#endif
-
-static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
-    const int neg_one = (int) -1, const_zero = 0;
-    const int is_unsigned = neg_one > const_zero;
-#if PY_MAJOR_VERSION < 3
-    if (likely(PyInt_Check(x))) {
-        if (sizeof(int) < sizeof(long)) {
-            __PYX_VERIFY_RETURN_INT(int, long, PyInt_AS_LONG(x))
-        } else {
-            long val = PyInt_AS_LONG(x);
-            if (is_unsigned && unlikely(val < 0)) {
-                goto raise_neg_overflow;
-            }
-            return (int) val;
-        }
-    } else
-#endif
-    if (likely(PyLong_Check(x))) {
-        if (is_unsigned) {
-#if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3
- #if CYTHON_USE_PYLONG_INTERNALS
-            switch (Py_SIZE(x)) {
-                case  0: return 0;
-                case  1: __PYX_VERIFY_RETURN_INT(int, digit, ((PyLongObject*)x)->ob_digit[0]);
-            }
- #endif
-#endif
-            if (unlikely(Py_SIZE(x) < 0)) {
-                goto raise_neg_overflow;
-            }
-            if (sizeof(int) <= sizeof(unsigned long)) {
-                __PYX_VERIFY_RETURN_INT(int, unsigned long, PyLong_AsUnsignedLong(x))
-            } else if (sizeof(int) <= sizeof(unsigned long long)) {
-                __PYX_VERIFY_RETURN_INT(int, unsigned long long, PyLong_AsUnsignedLongLong(x))
-            }
-        } else {
-#if CYTHON_COMPILING_IN_CPYTHON && PY_MAJOR_VERSION >= 3
- #if CYTHON_USE_PYLONG_INTERNALS
-            switch (Py_SIZE(x)) {
-                case  0: return 0;
-                case  1: __PYX_VERIFY_RETURN_INT(int,  digit, +(((PyLongObject*)x)->ob_digit[0]));
-                case -1: __PYX_VERIFY_RETURN_INT(int, sdigit, -(sdigit) ((PyLongObject*)x)->ob_digit[0]);
-            }
- #endif
-#endif
-            if (sizeof(int) <= sizeof(long)) {
-                __PYX_VERIFY_RETURN_INT(int, long, PyLong_AsLong(x))
-            } else if (sizeof(int) <= sizeof(long long)) {
-                __PYX_VERIFY_RETURN_INT(int, long long, PyLong_AsLongLong(x))
-            }
-        }
-        {
-#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
-            PyErr_SetString(PyExc_RuntimeError,
-                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
-#else
-            int val;
-            PyObject *v = __Pyx_PyNumber_Int(x);
- #if PY_MAJOR_VERSION < 3
-            if (likely(v) && !PyLong_Check(v)) {
-                PyObject *tmp = v;
-                v = PyNumber_Long(tmp);
-                Py_DECREF(tmp);
-            }
- #endif
-            if (likely(v)) {
-                int one = 1; int is_little = (int)*(unsigned char *)&one;
-                unsigned char *bytes = (unsigned char *)&val;
-                int ret = _PyLong_AsByteArray((PyLongObject *)v,
-                                              bytes, sizeof(val),
-                                              is_little, !is_unsigned);
-                Py_DECREF(v);
-                if (likely(!ret))
-                    return val;
-            }
-#endif
-            return (int) -1;
-        }
-    } else {
-        int val;
-        PyObject *tmp = __Pyx_PyNumber_Int(x);
-        if (!tmp) return (int) -1;
-        val = __Pyx_PyInt_As_int(tmp);
-        Py_DECREF(tmp);
-        return val;
-    }
-raise_overflow:
-    PyErr_SetString(PyExc_OverflowError,
-        "value too large to convert to int");
-    return (int) -1;
-raise_neg_overflow:
-    PyErr_SetString(PyExc_OverflowError,
-        "can't convert negative value to int");
-    return (int) -1;
-}
 
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
     const long neg_one = (long) -1, const_zero = 0;

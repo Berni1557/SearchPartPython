@@ -125,24 +125,7 @@ contains(PosList *list, int x, int y)
     return 0;
 }
 
-/*
-void convert_array(double* array1,double* array2, double* array1d, double* array2d, int m, int n){
-	int k=0;
-	for(int i=0; i<m; ++i){
-		for(int j=0; j<n; ++j){
-			array1d[i][j]=(uchar)array1[k];
-			k++;
-		}
-	}
-	k=0;
-	for(int i=0; i<m; ++i){
-		for(int j=0; j<n; ++j){
-			array2d[i][j]=(uchar)array2[k];
-			k++;
-		}
-	}
-}
-*/
+
 
 int rgrow(double* array1, double* array2, int m, int n, int sx, int sy, int threshold)
 {
