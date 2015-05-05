@@ -20,7 +20,7 @@
     </calendar>
   </calendars>
   <tasks>
-    <task id="1" name="Featureextractor" note="" work="86400" start="20150427T000000Z" end="20150429T170000Z" work-start="20150427T080000Z" percent-complete="5" priority="0" type="normal" scheduling="fixed-work">
+    <task id="1" name="Featureextractor" note="" work="86400" start="20150427T000000Z" end="20150429T170000Z" work-start="20150427T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
       <constraint type="must-start-on" time="20150427T000000Z"/>
     </task>
     <task id="2" name="Featureselector" note="" work="115200" start="20150429T170000Z" end="20150505T170000Z" work-start="20150430T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
@@ -36,7 +36,7 @@
     <task id="4" name="GUI feature and classificator information" note="" work="288000" start="20150511T000000Z" end="20150522T170000Z" work-start="20150511T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
       <constraint type="must-start-on" time="20150511T000000Z"/>
     </task>
-    <task id="5" name="Component correlation" note="" work="201600" start="20150427T000000Z" end="20150505T170000Z" work-start="20150427T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="5" name="Component correlation" note="" work="201600" start="20150427T000000Z" end="20150505T170000Z" work-start="20150427T080000Z" percent-complete="10" priority="0" type="normal" scheduling="fixed-work"/>
     <task id="6" name="Tesseract" note="" work="201600" start="20150504T000000Z" end="20150512T170000Z" work-start="20150504T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
       <constraint type="must-start-on" time="20150504T000000Z"/>
     </task>

@@ -11,9 +11,228 @@ import os
 import zipfile
 import shutil
 import ScaleCircle as SC
+from scipy import ndimage
+import math
 #from mlabwrap import mlab
 
+class OCRdata(object):
+    OCRrotation=[False,False,False,False]
+    OCR=False
+    OCRlib=False
+    charsubset=''
+    OCRborder_Top=0
+    OCRborder_Right=0
+    OCRborder_Bottom=0
+    OCRborder_Left=0
+    
+class Component(object):
+    Creation_date=''
+    Componentname=''
+    ComponentID=0
+    Componenthight=0
+    Componentwidth=0
+    Componentborder=0
+    Componentrotation=[False,False,False,False]
+    Componentdescription=''
+    CompOCRdata=OCRdata()
+    Imagename=list()
+    Imagelist=list()
+    dom=''
+    Componentmean=0
+    
+    def __init__(self, parent, filename,):
+        if isinstance (filename, basestring):
+            self.parent=parent
+            self=read_zipdb(self, filename)
+            if (parent!=None):
+                self.parent.imagecounter.imagenumber=0;
+                self.parent.imagecounter.imagenumber_max=len(self.Imagelist)-1;                                                 
+        else:
+            self.parent=parent
+            self.Creation_date=time.strftime("%c")
+            self.Componentname=''
+            self.ComponentID=0
+            #self.path=''
+            self.Imagename=list()
+            self.Top=list()
+            self.Bottom=list()
+            self.Left=list()
+            self.Right=list()
+            self.Componentrotation=[False,False,False,False]
+    
+    def create_mean(self):
+        #self.Componentmean=0
+        sz=self.scale_corr()
+        size=[sz[0],sz[1],3]
+        k=0
+        Componentmean=np.zeros(size, dtype=np.float)
+        for Im in self.Imagelist:
+            #imagesc = cv2.resize(Im.image, (self.parent.imsize[0], self.parent.imsize[1])) 
+            for b in Im.Top:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = cv2.resize(Imcomp,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
+            for b in Im.Right:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = ndimage.rotate(Imcomp, 90)
+                Compcorr = cv2.resize(Compcorr,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
+            for b in Im.Bottom:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = ndimage.rotate(Imcomp, 180)
+                Compcorr = cv2.resize(Compcorr,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
+            for b in Im.Left:
+                Imcomp = Im.image[int(b[1]):int(b[1]+b[3]), int(b[0]):int(b[0]+b[2])]
+                Compcorr = ndimage.rotate(Imcomp, -90)
+                Compcorr = cv2.resize(Compcorr,(size[1],size[0]))
+                Componentmean=Componentmean+Compcorr
+                k+=1
 
+        if k>0:
+            Componentmean=Componentmean/k
+            self.Componentmean = np.array(Componentmean, dtype = np.uint8)
+        #self.Imagelist[0].image=self.Componentmean 
+        return self.Componentmean 
+
+    def corr(self):
+        Componentmean=self.create_mean()
+        sc=self.scale_corr()
+        sc_corr=sc[2]
+
+        thr = 0.4
+        n_max=1
+        for Im in self.Imagelist:
+            del Im.Topcorr[:]
+            del Im.Rightcorr[:]
+            del Im.Bottomcorr[:]
+            del Im.Leftcorr[:]
+            
+            #scale image
+            scale=sc_corr/Im.scale_factor
+            imagesc = cv2.resize(Im.image, (int(Im.image.shape[1]*scale), int(Im.image.shape[0]*scale)))
+            
+            # Top correlation
+            h=sc[0];hl=int(h/2);hr=h-hl
+            w=sc[1];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = Componentmean
+            n=0
+            maxVal=1000
+            
+            # RGB to HSV
+            imagehsv=cv2.cvtColor(imagesc, cv2.cv.CV_BGR2HSV);
+            Comphsv=cv2.cvtColor(Compcorr, cv2.cv.CV_BGR2HSV);
+            # correlation
+            corr = cv2.matchTemplate(imagehsv,Comphsv,cv2.TM_CCOEFF_NORMED)
+            
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Topcorr.append(borg)  
+                else:
+                    corr[y,x]=0
+                n=n+1  
+                
+            # Right correlation
+            h=sc[1];hl=int(h/2);hr=h-hl
+            w=sc[0];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = ndimage.rotate(Componentmean, -90)
+            n=0
+            maxVal=1000
+            # RGB to HSV
+            Comphsv=cv2.cvtColor(Compcorr, cv2.cv.CV_BGR2HSV);
+            # correlation
+            corr = cv2.matchTemplate(imagehsv,Compcorr,cv2.TM_CCOEFF_NORMED)
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Rightcorr.append(borg)  
+                else:
+                    corr[y,x]=0
+                n=n+1  
+                
+            # Bottom correlation
+            h=sc[0];hl=int(h/2);hr=h-hl
+            w=sc[1];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = ndimage.rotate(Componentmean, 180)
+            n=0
+            maxVal=1000
+            # RGB to HSV
+            Comphsv=cv2.cvtColor(Compcorr, cv2.cv.CV_BGR2HSV);
+            # correlation
+            corr = cv2.matchTemplate(imagehsv,Compcorr,cv2.TM_CCOEFF_NORMED)
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Bottomcorr.append(borg)  
+                else:
+                    corr[y,x]=0
+                n=n+1  
+                
+            # Left correlation
+            h=sc[1];hl=int(h/2);hr=h-hl
+            w=sc[0];wl=int(w/2);wr=w-wl
+            # create template
+            Compcorr = ndimage.rotate(Componentmean, 90)
+            n=0
+            maxVal=1000
+            # RGB to HSV
+            Comphsv=cv2.cvtColor(Compcorr, cv2.cv.CV_BGR2HSV);
+            # correlation
+            corr = cv2.matchTemplate(imagehsv,Compcorr,cv2.TM_CCOEFF_NORMED)
+            while maxVal>thr and n<n_max:
+                # determine maximum
+                (minVal,maxVal,minLoc,maxLoc) = cv2.minMaxLoc(corr)
+                x=maxLoc[0];y=maxLoc[1]
+                if (x-wl>0 and y-hl>0 and x+wr<corr.shape[1] and y+hr<corr.shape[0]):
+                    # remove correlation maximum
+                    roi=np.zeros([h,w],np.uint8)
+                    corr[y-hl:y+hr,x-wl:x+wr]=roi
+                    #create rectangle
+                    b=[x,y,w,h]
+                    borg = [i / scale for i in b]
+                    Im.Leftcorr.append(borg)  
+                else:
+                    corr[y,x]=0
+                n=n+1                     
+        self.parent.update_componentdata()
+              
+    def scale_corr(self):
+        x=float(self.Componentwidth)*float(self.Componenthight)
+        res=15*math.exp( -( x -1)*0.05 )+5;
+        return [int(float(self.Componenthight)*res),int(float(self.Componentwidth)*res),res]
+          
+          
 class Imagedata(object):
     improbabilitymap=list()
     image=np.zeros((3000,4000,3), np.uint8)
@@ -131,6 +350,13 @@ def create_dom(Component):
     text2 = dom.createTextNode(str(Component.CompOCRdata.OCRrotation))
     node2.appendChild(text2)
     node1.appendChild(node2)
+    
+    node2 = dom.createElement("OCRborder")
+    text2 = dom.createTextNode(str([Component.CompOCRdata.OCRborder_Top,Component.CompOCRdata.OCRborder_Right,Component.CompOCRdata.OCRborder_Bottom,Component.CompOCRdata.OCRborder_Left]))
+    node2.appendChild(text2)
+    node1.appendChild(node2)
+    
+    
     node2 = dom.createElement("OCR")
     text2 = dom.createTextNode(str(Component.CompOCRdata.OCR))
     node2.appendChild(text2)
@@ -156,6 +382,11 @@ def create_dom(Component):
 
         node2 = dom.createElement("Imagepath")
         text2 = dom.createTextNode(Im.Imagepath)
+        node2.appendChild(text2)
+        node1.appendChild(node2)
+        
+        node2 = dom.createElement("Scale_factor")
+        text2 = dom.createTextNode(str(Im.scale_factor))
         node2.appendChild(text2)
         node1.appendChild(node2)
                 
@@ -306,7 +537,7 @@ def read_zipdb(Component, filepath):
     if Component.dom.getElementsByTagName('charsubset').item(0).childNodes:
         s=Component.dom.getElementsByTagName('charsubset').item(0).childNodes[0].nodeValue
         Component.CompOCRdata.charsubset=s
-        
+    # get OCRrotation
     s=Component.dom.getElementsByTagName('OCRrotation').item(0).firstChild.nodeValue
     s1=s.split('[')
     s2=s1[1].split(']')
@@ -316,7 +547,19 @@ def read_zipdb(Component, filepath):
         i=i.replace(" ", "")
         b.append(str_to_bool(i))
     Component.CompOCRdata.OCRrotation=b
-    
+    # get OCRborder
+    s=Component.dom.getElementsByTagName('OCRborder').item(0).firstChild.nodeValue
+    s1=s.split('[')
+    s2=s1[1].split(']')
+    str1=s2[0].split(',')
+    b=list()
+    for i in str1:
+        i=i.replace(" ", "")
+        b.append(float(i))
+    Component.CompOCRdata.OCRborder_Top=b[0]
+    Component.CompOCRdata.OCRborder_Right=b[1]
+    Component.CompOCRdata.OCRborder_Bottom=b[2]
+    Component.CompOCRdata.OCRborder_Left=b[3]
     """
     OCRnode=Component.dom.getElementsByTagName('CompOCRdata')
     
