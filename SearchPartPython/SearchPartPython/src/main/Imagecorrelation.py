@@ -69,7 +69,7 @@ images.append(Im4)
 images.append(Im5)
 images.append(Im6)
 
-filename="/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/test1.zip"
+filename="/home/bernifoellmer/Studium/SearchPartPython/SearchPartPython/SearchPartPython/SearchPartPython/data/SOT223.zip"
 Comp=SPM.Component(None,filename)
 
 corrcomponent(Comp,images)

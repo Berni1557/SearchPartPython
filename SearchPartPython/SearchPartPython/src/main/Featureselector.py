@@ -5,14 +5,23 @@ import numpy as np
 #import time
 from numpy import double
 import rgrowmod
-
+from sklearn.ensemble import RandomForestClassifier
 
 class Featureselector(object):
     
-    def __init__(self,mode):
-        return 1
+    def __init__(self,num_Features):
+        return None
     
-    def cal_Fscore(self,labels,samples):
+    def RFimportance(self,X,Y,num_trees,num_Features):    
+        # compute RF importance
+        forest = RandomForestClassifier(n_estimators=num_trees,criterion='gini')
+        forest.fit(X, Y)
+        importances = forest.feature_importances_
+        indices=np.argsort(importances)
+        FeaturesOut=X[:, indices[1:num_Features]]
+        return FeaturesOut
+    
+    def Fscore(self,labels,samples):
         data_num=float(len(samples))
         p_num = {} #key: label;  value: data num
         sum_f = [] #index: feat_idx;  value: sum
@@ -67,9 +76,11 @@ class Featureselector(object):
         return F
 
 
-FS=Featureselector()
+FS=Featureselector(3)
 samples=np.array([[10,10],[100,100],[150,106],[11,9]])
-labels=np.array([[1,0,1,0]])
+labels=np.array([1,0,1,0])
 labels=np.transpose(labels)
-#FS.cal_Fscore(labels, samples)    
-FS.Fscore(labels, samples)        
+ 
+#FS.Fscore(labels, samples)        
+ind=FS.RFimportance(samples,labels,100,10)
+print(ind)

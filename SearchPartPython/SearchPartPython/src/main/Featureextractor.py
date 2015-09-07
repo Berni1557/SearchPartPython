@@ -6,7 +6,7 @@ import numpy as np
 from numpy import double
 import rgrowmod
 
-class Featureextracor(object):
+class Featureextractor(object):
     numHist=None
     numSeg=None
     ks_pca=None
@@ -31,11 +31,15 @@ class Featureextracor(object):
                 featuresAll=list()
                 for Im in images:
                     Ihsv = cv2.cvtColor(Im,cv2.COLOR_BGR2HSV)   # rgb to hsv
+                    num_pix=float(Im.shape[0]*Im.shape[1])
                     h,s,v = cv2.split(Ihsv)   # split hsv in channels
                     bins = np.linspace(0, 256, self.numHist+1)  # create bins (bin-edges)
                     N1,_ = np.histogram(h,bins)     # create histogram of h channel
                     N2,_ = np.histogram(s,bins)     # create histogram of s channel
                     N3,_ = np.histogram(v,bins)     # create histogram of v channel
+                    N1 = [x / num_pix for x in N1]
+                    N2 = [x / num_pix for x in N2]
+                    N3 = [x / num_pix for x in N3]
                     N=np.concatenate((N1,N2,N3),axis=0)     # concatenate histogram features
                     featuresAll.append(N)
                 return featuresAll
@@ -99,20 +103,6 @@ class Featureextracor(object):
                             I2o = I2.astype(np.uint8)
             
                             _,thr = cv2.threshold(I2o, 127, 1, cv2.THRESH_BINARY)   # binarize image
-                # load component
-    
-    # create mean image
-    
-    # convert from rgb to hsv
-    
-    # convert image from rgb to hsv
-    
-    # correlation
-    
-    # filter position by threshold
-    
-    # compute correlation positions
-    
 
                             contours, _ = cv2.findContours(thr, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)  # find segment contour
                             # compute segment features
@@ -165,10 +155,14 @@ class Featureextracor(object):
         else:
             return False
     # PCA features    
-    def generate_pca(self,mode,images,featurenum):
+    def generate_pca(self,mode,featurenum,images_pos,images_neg):
         if mode=='predict':
-            eigenvectors=np.load(self.path_pca+'eigenvectors.npy')  # load eigenvectors
-            eigenmean=np.load(self.path_pca+'eigenmean.npy')        # load eigenmean
+            images=images_pos
+            # generate positive error
+            eigenvectors_pos=np.load(self.path_pca+'eigenvectors_pos.npy')  # load eigenvectors
+            eigenmean_pos=np.load(self.path_pca+'eigenmean_pos.npy')        # load eigenmean
+            eigenvectors_neg=np.load(self.path_pca+'eigenvectors_pos.npy')  # load eigenvectors
+            eigenmean_neg=np.load(self.path_pca+'eigenmean_pos.npy')        # load eigenmean
             (s1,s2,_)=images[0].shape
             matrix_train=np.zeros((s1*s2,1),np.float32)
             err=None
@@ -186,14 +180,12 @@ class Featureextracor(object):
                     # LoG filter
                     Igauss = cv2.GaussianBlur(Igray,(self.ks_pca,self.ks_pca),0.5)
                     Ilog = cv2.Laplacian(Igauss, cv2.CV_64F, ksize = self.ks_pca)
-                    
                     # normalize Ilog
                     minval=np.percentile(Ilog,1)
                     maxval=np.percentile(Ilog,99)
                     if minval != maxval:
                         Ilog -= minval
                         Ilog *= (255.0/(maxval-minval))
-
                     # reshape data
                     imgvector = Ilog.reshape(s1*s2,1)
                     #imgvector=np.transpose(data)
@@ -202,20 +194,25 @@ class Featureextracor(object):
                 matrix_train=matrix_train[:,1:]    
                 # compute reconstruction error
                 matrix_train=np.transpose(matrix_train)
-                proj=cv2.PCAProject(matrix_train, eigenmean, eigenvectors)
-                back=cv2.PCABackProject(proj, eigenmean, eigenvectors)
+                proj_pos=cv2.PCAProject(matrix_train, eigenmean_pos, eigenvectors_pos)
+                back_pos=cv2.PCABackProject(proj_pos, eigenmean_pos, eigenvectors_pos)
+                proj_neg=cv2.PCAProject(matrix_train, eigenmean_neg, eigenvectors_neg)
+                back_neg=cv2.PCABackProject(proj_neg, eigenmean_neg, eigenvectors_neg)
                 # compute reconstruction error as feature
-                err=np.sum(abs(matrix_train-back),axis=1)
-                featuresAll=err      
+                err_pos=np.sum(abs(matrix_train-back_pos),axis=1)
+                err_neg=np.sum(abs(matrix_train-back_neg),axis=1)
+ 
+                featuresAll=err_pos-err_neg      
                 return featuresAll
             else:
                 return False
-            
+           
         elif mode=='apriori':
-            (s1,s2,_)=images[0].shape
+            # generate positive pca
+            (s1,s2,_)=images_pos[0].shape
             matrix_train=np.zeros((s1*s2,1),np.float32) # create matrix with a zero line  
             if featurenum is None:
-                for Iin in images:
+                for Iin in images_pos:
                     # rgb to gray
                     Igray = cv2.cvtColor( Iin, cv2.COLOR_RGB2GRAY)
                     Igray = Igray.astype(np.float)
@@ -244,13 +241,45 @@ class Featureextracor(object):
                 matrix_train=np.transpose(matrix_train)
                 
                 (_, eigenvectors)=cv2.PCACompute(matrix_train, mean, maxComponents=self.MAX_COMPONENTS)  
-                np.save(self.path_pca+'eigenvectors.npy', eigenvectors) # save eigenvectors
-                np.save(self.path_pca+'eigenmean.npy', mean)    # save eigenmean
-                return True
-            else:
-                return False
-        else:
-            return False
+                np.save(self.path_pca+'eigenvectors_pos.npy', eigenvectors) # save eigenvectors
+                np.save(self.path_pca+'eigenmean_pos.npy', mean)    # save eigenmean
+                
+            # generate negative pca
+            (s1,s2,_)=images_neg[0].shape
+            matrix_train=np.zeros((s1*s2,1),np.float32) # create matrix with a zero line  
+            if featurenum is None:
+                for Iin in images_neg:
+                    # rgb to gray
+                    Igray = cv2.cvtColor( Iin, cv2.COLOR_RGB2GRAY)
+                    Igray = Igray.astype(np.float)
+                    # normalize image
+                    minval=np.percentile(Igray,1)
+                    maxval=np.percentile(Igray,99)
+                    if minval != maxval:
+                        Igray -= minval
+                        Igray *= (255.0/(maxval-minval))
+                    # LoG filter
+                    Igauss = cv2.GaussianBlur(Igray,(self.ks_pca,self.ks_pca),0.5)
+                    Ilog = cv2.Laplacian(Igauss, cv2.CV_32F, ksize = self.ks_pca)
+                    # normalize Ilog
+                    minval=np.percentile(Ilog,1)
+                    maxval=np.percentile(Ilog,99)
+                    if minval != maxval:
+                        Ilog -= minval
+                        Ilog *= (255.0/(maxval-minval))
+                    # reshape data
+                    imgvector = Ilog.reshape(s1*s2,1)
+                    #imgvector=np.transpose(data)
+                    matrix_train = np.hstack((matrix_train, imgvector))
+                
+                matrix_train=matrix_train[:,1:]     # delete  zero line from matrix
+                mean=np.mean(matrix_train, axis=1).reshape(1,-1)    # compute image mean
+                matrix_train=np.transpose(matrix_train)
+                
+                (_, eigenvectors)=cv2.PCACompute(matrix_train, mean, maxComponents=self.MAX_COMPONENTS)  
+                np.save(self.path_pca+'eigenvectors_neg.npy', eigenvectors) # save eigenvectors
+                np.save(self.path_pca+'eigenmean_neg.npy', mean)    # save eigenmean
+        return True
         
     # Frequency features    
     def generate_frequency(self,mode,images,featurenum):
