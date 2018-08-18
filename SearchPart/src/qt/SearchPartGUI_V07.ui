@@ -137,19 +137,26 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_13">
                   <property name="spacing">
-                   <number>2</number>
+                   <number>3</number>
                   </property>
                   <item>
-                   <widget class="QPushButton" name="SelectDataset">
+                   <widget class="QPushButton" name="CreateCompDataset">
                     <property name="text">
-                     <string>Select Dataset</string>
+                     <string>Create component dataset</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="CreateDataset">
+                   <widget class="QPushButton" name="LoadCompDataset">
                     <property name="text">
-                     <string>Create Dataset</string>
+                     <string>Load component dataset</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="SaveCompDataset">
+                    <property name="text">
+                     <string>Save component dataset</string>
                     </property>
                    </widget>
                   </item>

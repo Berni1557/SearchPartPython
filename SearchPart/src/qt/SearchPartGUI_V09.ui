@@ -137,19 +137,26 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_13">
                   <property name="spacing">
-                   <number>2</number>
+                   <number>3</number>
                   </property>
                   <item>
-                   <widget class="QPushButton" name="SelectDataset">
+                   <widget class="QPushButton" name="CreateCompDataset">
                     <property name="text">
-                     <string>Select Dataset</string>
+                     <string>Create component dataset</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="CreateDataset">
+                   <widget class="QPushButton" name="LoadCompDataset">
                     <property name="text">
-                     <string>Create Dataset</string>
+                     <string>Load component dataset</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="SaveCompDataset">
+                    <property name="text">
+                     <string>Save component dataset</string>
                     </property>
                    </widget>
                   </item>
@@ -177,99 +184,6 @@
             </item>
             <item row="1" column="0">
              <layout class="QGridLayout" name="gridLayout_5">
-              <item row="1" column="2">
-               <layout class="QVBoxLayout" name="verticalLayout_9">
-                <item>
-                 <widget class="QCheckBox" name="BBox">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Select bounding box</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="DeleteBBox">
-                  <property name="text">
-                   <string>Delete bounding box</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="ComponentMean">
-                  <property name="text">
-                   <string>Compute component mean</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="AddImage">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Add image</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="DeleteImage">
-                  <property name="text">
-                   <string>Delete image</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="ImageScale">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Image scale [px/mm]</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="ImageNumber">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Image number</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="verticalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Expanding</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
               <item row="1" column="0">
                <layout class="QVBoxLayout" name="verticalLayout_11">
                 <property name="spacing">
@@ -423,7 +337,7 @@
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>BorderSize</string>
+                       <string>BorderSize [mm]</string>
                       </property>
                      </widget>
                     </item>
@@ -483,36 +397,6 @@
                    <number>2</number>
                   </property>
                   <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_10">
-                    <item>
-                     <widget class="QLabel" name="OCRTextLabel">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>OCR Text</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="OCRText">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
                    <layout class="QVBoxLayout" name="verticalLayout_14">
                     <item>
                      <widget class="QLabel" name="label_2">
@@ -523,12 +407,12 @@
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>DataBase</string>
+                       <string>Online database</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="DataBase">
+                     <widget class="QLineEdit" name="OnlineDataBase">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -545,7 +429,58 @@
                  </layout>
                 </item>
                 <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <item>
+                   <widget class="QLabel" name="OCRTextLabel">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>OCR Text</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="OCRText">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_6">
+                    <item>
+                     <widget class="QCheckBox" name="OCRAxialSymmetricHorizontal">
+                      <property name="text">
+                       <string>OCR Horizontal symmetric</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="OCRAxialSymmetricVertical">
+                      <property name="text">
+                       <string>OCR Vetical symmetric</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+                <item>
                  <layout class="QVBoxLayout" name="verticalLayout_16">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
                   <item>
                    <widget class="QLabel" name="RotationLabel">
                     <property name="sizePolicy">
@@ -555,28 +490,30 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>Rotation</string>
+                     <string>ComponentRotation</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="Rotation">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
+                   <layout class="QHBoxLayout" name="horizontalLayout_5">
+                    <property name="spacing">
+                     <number>2</number>
                     </property>
-                    <property name="editable">
-                     <bool>true</bool>
-                    </property>
-                    <property name="currentText">
-                     <string>Top, Right, Left, Bottom</string>
-                    </property>
-                    <property name="duplicatesEnabled">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
+                    <item>
+                     <widget class="QCheckBox" name="AxialSymmetricHorizontal">
+                      <property name="text">
+                       <string>Horizontal symmetric </string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="AxialSymmetricVertical">
+                      <property name="text">
+                       <string>Vertical symmetric </string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </item>
@@ -614,7 +551,14 @@
               <item row="1" column="1">
                <layout class="QHBoxLayout" name="horizontalLayout_28">
                 <item>
-                 <widget class="QOpenGLWidget" name="openGLWidget_3">
+                 <widget class="QLabel" name="ImageTest">
+                  <property name="text">
+                   <string>TextLabel</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QOpenGLWidget" name="openGLWidget">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                     <horstretch>100</horstretch>
@@ -622,6 +566,99 @@
                    </sizepolicy>
                   </property>
                  </widget>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <item>
+                   <widget class="QCheckBox" name="BBox">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Show bounding boxes</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="DeleteBBox">
+                    <property name="text">
+                     <string>Delete bounding box</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="ComponentMean">
+                    <property name="text">
+                     <string>Compute component mean</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="AddImage">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Add image</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="DeleteImage">
+                    <property name="text">
+                     <string>Delete image</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="ImageScale">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Image scale [px/mm]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="ImageNumber">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Image number: 0 / 0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Expanding</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>

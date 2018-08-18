@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<datasetstruct>
+	<Creation_date>Sat Aug 18 15:20:20 2018</Creation_date>
+	<Componentname></Componentname>
+	<ComponentID>0</ComponentID>
+	<Componentheight>0</Componentheight>
+	<Componentwidth>0</Componentwidth>
+	<Componentborder>0</Componentborder>
+	<Componentrotation>[False, False, False, False]</Componentrotation>
+	<Componentdescription></Componentdescription>
+	<CompOCRdata>
+		<OCRrotation>[False, False, False, False]</OCRrotation>
+		<OCRborder>[0, 0, 0, 0]</OCRborder>
+		<OCR>False</OCR>
+		<OCRlib>False</OCRlib>
+		<charsubset></charsubset>
+	</CompOCRdata>
+</datasetstruct>
