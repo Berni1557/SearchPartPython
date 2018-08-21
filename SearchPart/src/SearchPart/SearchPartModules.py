@@ -20,11 +20,14 @@ class imagecounter(object):
     imagenumber = -1     
     imagenumber_max = -1;
     def tostring(self):
-        if self.imagenumber_max>0:
+        if self.imagenumber_max>=0:
             imstr=str(self.imagenumber+1) + " / " + str(self.imagenumber_max+1)
         else:
             imstr="0 / 0"
         return imstr
+    
+    def valid(self):
+        return self.imagenumber <= self.imagenumber_max and self.imagenumber_max>-1
     
 class OCRdata(object):
     OCRrotation = [False,False,False,False]
@@ -43,8 +46,8 @@ class Component(object):
     Creation_date=''
     Componentname=''
     ComponentID=0
-    Componentheight=0
-    Componentwidth=0
+    Componentheight=10
+    Componentwidth=20
     Componentborder=0
     Componentrotation=[False,False,False,False]
     Componentdescription=''
@@ -266,6 +269,7 @@ class Imagedata(object):
     image=np.zeros((3000,4000,3), np.uint8)
     def __init__(self,path):
         self.Imagepath=path
+        self.Imagepath_relative=os.path.basename(path)
         self.Imagename=os.path.basename(path)
         self.image=cv2.imread(path)    
         self.Top=list()
@@ -401,8 +405,9 @@ def create_dom(Component):
         node2.appendChild(text2)
         node1.appendChild(node2)
 
-        node2 = dom.createElement("Imagepath")
-        text2 = dom.createTextNode(Im.Imagepath)
+        node2 = dom.createElement("Imagepath_relative")
+        #text2 = dom.createTextNode(Im.Imagepath)
+        text2 = dom.createTextNode(Im.Imagepath_relative)      
         node2.appendChild(text2)
         node1.appendChild(node2)
         
@@ -507,23 +512,32 @@ def write_zipdb(Component, filepath_ext):
     zipf.close()
     
 def read_zipdb(Component, filepath):
-    di, base_filename = os.path.split(filepath)
+    
+    print('filepath1: ' + filepath)
+    
+    base_folder, base_filename = os.path.split(filepath)
+    
     
     str1=base_filename.split('.')
+    filename = str1[0]
     xmlname=str1[0] + '.xml'
     zipf = zipfile.ZipFile(filepath, 'r')
-    zipf.extract(xmlname,di)
+    zipf.extract(xmlname,base_folder)
+    zipf.extractall(base_folder + '/' + filename)
     
     str1=base_filename.split('.')
     
-    xmlpath=di + '/'+ xmlname
-    print(xmlpath)
+    xmlpath=base_folder + '/'+ xmlname
+    
+    #print('xmlpath: ' + xmlpath)
+    
+    #print(xmlpath)
     dom = parse(xmlpath)
     Component.dom = dom
     os.remove(xmlpath)
     
     st=dom.toprettyxml()
-    print(st)
+    #print(st)
     
     
     Component.Creation_date=Component.dom.getElementsByTagName('Creation_date').item(0).firstChild.nodeValue
@@ -587,10 +601,12 @@ def read_zipdb(Component, filepath):
         
     images=Component.dom.getElementsByTagName('Image')
     for image in images:
-        node=image.getElementsByTagName('Imagepath')
-        Imagepath=node[0].childNodes[0].nodeValue
+        node=image.getElementsByTagName('Imagepath_relative')
+        Imagepath_relative=node[0].childNodes[0].nodeValue
         
-        print(Imagepath)
+        #print(Imagepath)
+        Imagepath = base_folder + '/' + filename + '/' + Imagepath_relative
+        #print('Imagepath: ' + Imagepath)
         Im=Imagedata(Imagepath)
         
         node=image.getElementsByTagName('Imagename')

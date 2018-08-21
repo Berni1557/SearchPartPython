@@ -9,6 +9,7 @@ from PyQt5.uic import loadUi
 import time
 import string
 import cv2
+import numpy as np
 import SearchPartModules as SPM
 
 from PyQt5.QtGui import QIcon, QPixmap
@@ -28,8 +29,9 @@ class SearchPartGUI(QMainWindow):
     component = SPM.Component(None,None);
     counter = SPM.imagecounter();
     showBBox = True;
-    scaleVisualization = 1.0;
-    scaleVisualizationWidth = 700
+    #scaleVisualization = 1.0;
+    scaleVisualization = [800,600]
+    scaleVisualizationFactor = [1.0, 1.0]
     bboxrot = [True,False,False,False]
     pixmap = None
     
@@ -37,7 +39,7 @@ class SearchPartGUI(QMainWindow):
         
         # Init GUI      
         super(SearchPartGUI,self).__init__()
-        loadUi('../qt/SearchPartGUI_V11.ui',self)
+        loadUi('../qt/SearchPartGUI_V13.ui',self)
         self.setWindowTitle('SearchPart')
 
         # Set callbacks
@@ -65,7 +67,7 @@ class SearchPartGUI(QMainWindow):
         self.Next.clicked.connect(self.on_button_Next);
         
         self.BBox.stateChanged.connect(self.on_BBox)
-        self.DeleteBBox.clicked.connect(self.on_DeleteBBox);
+        #self.DeleteBBox.clicked.connect(self.on_DeleteBBox);
         self.ComponentMean.clicked.connect(self.on_ComponentMean)
         self.AddImage.clicked.connect(self.on_AddImage)
         self.DeleteImage.clicked.connect(self.on_DeleteImage)
@@ -82,12 +84,13 @@ class SearchPartGUI(QMainWindow):
         self.counter=SPM.imagecounter();
         
         self.reset()
+        self.draw()
     
     def getPosition(self , event):
         x = event.pos().x()
         y = event.pos().y()
-        print('x: ' + str(x))
-        print('y: ' + str(y))
+        #print('x: ' + str(x))
+        #print('y: ' + str(y))
         self.appendBBox(x, y)
         
     def scale(self):
@@ -100,11 +103,12 @@ class SearchPartGUI(QMainWindow):
     @pyqtSlot()
     def on_DeleteImage(self):
         del self.component.Imagelist[self.counter.imagenumber]
+        #self.counter.imagenumber = self.counter.imagenumber - 1;
         self.update_componentdata()
         
     @pyqtSlot()
     def on_AddImage(self):
-        ImFilter = "PNG (*.png)"
+        #ImFilter = "PNG (*.png)"
         #filenames = QFileDialog.getOpenFileNamesAndFilter(self, "Open files", "C:\\Desktop", ImFilter)
         names = QFileDialog.getOpenFileNames(self,  'Open file','H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/images/',"Images (*.png *.tiff *.jpg)")
         filenames = names[0];
@@ -127,9 +131,9 @@ class SearchPartGUI(QMainWindow):
         self.BBox.setChecked(True)
         self.update_componentdata()
         
-    @pyqtSlot()
-    def on_DeleteBBox(self):
-        print('on_DeleteBBox')
+    #@pyqtSlot()
+    #def on_DeleteBBox(self):
+    #    print('on_DeleteBBox')
         
     @pyqtSlot()
     def on_BBox(self):
@@ -372,41 +376,102 @@ class SearchPartGUI(QMainWindow):
 #        self.drawarea.queue_draw()
     def draw(self):
         print('draw')
-        imagecv = self.component.Imagelist[self.counter.imagenumber].image
-        image = QtGui.QImage(imagecv, imagecv.shape[1],imagecv.shape[0], imagecv.shape[1] * 3,QtGui.QImage.Format_RGB888)
-        self.pixmap = QtGui.QPixmap(image)
-        self.pixmap = self.pixmap.scaledToWidth(self.scaleVisualizationWidth)
-        self.scaleVisualization = self.scaleVisualizationWidth / imagecv.shape[1]
-        self.Image.setPixmap(self.pixmap)
+        #print('Image size:' + str(self.Image.size().width()))
+        #print('Image size:' + str(self.Image.size().height()))
+        
+        print('Image size:' + str(len(self.component.Imagelist)))
+        print('imagenumber:' + str(self.counter.imagenumber))
+        print('imagenumber_max:' + str(self.counter.imagenumber_max))
+        
+        if self.counter.valid():
+            imagecv = self.component.Imagelist[self.counter.imagenumber].image
+            
+            self.scaleVisualizationFactor[0] = self.scaleVisualization[0] / imagecv.shape[1]
+            self.scaleVisualizationFactor[1] = self.scaleVisualization[1] / imagecv.shape[0]
+            
+            #print('scaleVisualizationFactor: ' + str(self.scaleVisualizationFactor))
+            #print('scaleVisualization: ' + str(self.scaleVisualization))
+            #print('imagecv: ' + str(imagecv.shape))
+            
+            #imagecv = scipy.misc.imresize(imagecv, 0.175)
+            imagecv = cv2.resize(imagecv, (self.scaleVisualization[0], self.scaleVisualization[1])) 
+            #print("shape0: " + str(imagecv.shape[0]))
+            #print("shape1: " + str(imagecv.shape[1]))
+            
+            #image = QtGui.QImage(imagecv, imagecv.shape[1],imagecv.shape[0], imagecv.shape[1] * 3, QtGui.QImage.Format_Indexed8)
+            image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888)
+            self.pixmap = QtGui.QPixmap(image)
+            #self.pixmap = self.pixmap.scaledToWidth(self.scaleVisualizationWidth)
+            #self.scaleVisualization = self.scaleVisualizationWidth / imagecv.shape[1]
+            self.Image.setPixmap(self.pixmap)
+            #self.Image.setPixmap(self.pixmap.scaled(self.Image.width(), self.Image.height(), QtCore.Qt.KeepAspectRatio))
+        else:
+            imagecv = np.zeros((self.scaleVisualization[1], self.scaleVisualization[0], 3), np.uint8)
+            
+            self.scaleVisualizationFactor[0] = self.scaleVisualization[0] / imagecv.shape[1]
+            self.scaleVisualizationFactor[1] = self.scaleVisualization[1] / imagecv.shape[0]
+            
+            #print('scaleVisualizationFactor: ' + str(self.scaleVisualizationFactor))
+            #print('scaleVisualization: ' + str(self.scaleVisualization))
+            #print('imagecv: ' + str(imagecv.shape))
+            
+            #imagecv = scipy.misc.imresize(imagecv, 0.175)
+            imagecv = cv2.resize(imagecv, (self.scaleVisualization[0], self.scaleVisualization[1])) 
+            #print("shape0: " + str(imagecv.shape[0]))
+            #print("shape1: " + str(imagecv.shape[1]))
+            
+            #image = QtGui.QImage(imagecv, imagecv.shape[1],imagecv.shape[0], imagecv.shape[1] * 3, QtGui.QImage.Format_Indexed8)
+            image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888)
+            self.pixmap = QtGui.QPixmap(image)
+            #self.pixmap = self.pixmap.scaledToWidth(self.scaleVisualizationWidth)
+            #self.scaleVisualization = self.scaleVisualizationWidth / imagecv.shape[1]
+            self.Image.setPixmap(self.pixmap)
+            #self.Image.setPixmap(self.pixmap.scaled(self.Image.width(), self.Image.height(), QtCore.Qt.KeepAspectRatio))
 
     def drawRectangle(self):
-        print('drawRectangle')
+        
+        #print('Image width:' + str(self.Image.size().width()))
+        #print('Image height:' + str(self.Image.size().height()))
+        
+        #self.draw()
+        
+        #print('drawRectangle')
         painter = QPainter(self.pixmap)
+        painter.setBrush(Qt.NoBrush)
+        painter.setPen(Qt.red)
+                
         if len(self.component.Imagelist)>0:
             
             imagecv=self.component.Imagelist[self.counter.imagenumber].image
-            imagecv = cv2.resize(imagecv, None, fx=self.scaleVisualization, fy=self.scaleVisualization);
-            image = QtGui.QImage(imagecv, imagecv.shape[1], imagecv.shape[0], imagecv.shape[1] * 3,QtGui.QImage.Format_RGB888)
+            #self.scaleVisualizationFactor[0] = self.scaleVisualization[0] / imagecv.shape[0]
+            #self.scaleVisualizationFactor[1] = self.scaleVisualization[1] / imagecv.shape[1]
+            #imagecv = cv2.resize(imagecv, None, fx=self.scaleVisualizationFactor[0], fy=self.scaleVisualizationFactor[1]);
+            imagecv = cv2.resize(imagecv, (self.scaleVisualization[0], self.scaleVisualization[1])) 
+            image = QtGui.QImage(imagecv, imagecv.shape[1], imagecv.shape[0], imagecv.shape[1] * 3, QtGui.QImage.Format_RGB888)
             self.pixma = QtGui.QPixmap(image)
-            
-            
-            
-            scale_image=self.component.Imagelist[self.counter.imagenumber].scale_factor;
-            scale_OCR=scale_image * self.scaleVisualization;
-            
-            print('scale_image: ' + str(scale_image))
-            
-            for borg in self.component.Imagelist[self.counter.imagenumber].Top:
-                b = [x * scale_image for x in borg]
-                #painter = QPainter(self.pixmap)
-                painter.setBrush(Qt.NoBrush);
-                painter.setPen(Qt.red);  
-                painter.drawRect(QRect(b[0], b[1], b[2], b[3]))
-                print('d: ' + str(b))
-               
-            self.Image.setPixmap(self.pixmap);    
-            self.Image.repaint()  
 
+            for borg in self.component.Imagelist[self.counter.imagenumber].Top:  
+                painter.setPen(Qt.red)
+                rect = QRect(borg[0]*self.scaleVisualizationFactor[0], borg[1]*self.scaleVisualizationFactor[1], borg[2]*self.scaleVisualizationFactor[0], borg[3]*self.scaleVisualizationFactor[1])
+                painter.drawRect(rect)           
+
+            for borg in self.component.Imagelist[self.counter.imagenumber].Right:
+                painter.setPen(Qt.green)
+                rect = QRect(borg[0]*self.scaleVisualizationFactor[0], borg[1]*self.scaleVisualizationFactor[1], borg[2]*self.scaleVisualizationFactor[0], borg[3]*self.scaleVisualizationFactor[1])
+                painter.drawRect(rect)
+                
+            for borg in self.component.Imagelist[self.counter.imagenumber].Left:
+                painter.setPen(Qt.yellow)
+                rect = QRect(borg[0]*self.scaleVisualizationFactor[0], borg[1]*self.scaleVisualizationFactor[1], borg[2]*self.scaleVisualizationFactor[0], borg[3]*self.scaleVisualizationFactor[1])
+                painter.drawRect(rect)
+                
+            for borg in self.component.Imagelist[self.counter.imagenumber].Bottom:
+                painter.setPen(Qt.blue)
+                rect = QRect(borg[0]*self.scaleVisualizationFactor[0], borg[1]*self.scaleVisualizationFactor[1], borg[2]*self.scaleVisualizationFactor[0], borg[3]*self.scaleVisualizationFactor[1])
+                painter.drawRect(rect)
+
+            self.Image.setPixmap(self.pixmap);    
+            self.Image.repaint() 
             
 #            painter = QPainter(self.pixmap)
 #            painter.setBrush(Qt.NoBrush);
@@ -494,19 +559,31 @@ class SearchPartGUI(QMainWindow):
 #                    cr.stroke()         
         
     def appendBBox(self, x_image, y_image):
-        x=x_image / self.scaleVisualization
-        y=y_image / self.scaleVisualization
+        #print('scaleVisualization' + str(self.scaleVisualization))
+        x=x_image / self.scaleVisualizationFactor[0]
+        y=y_image / self.scaleVisualizationFactor[1]
+        
+        #print('scale_factor appendBBox: ' + str(self.component.Imagelist[self.counter.imagenumber].scale_factor))
+        #print('y1: ' + str(y))
+        
+        RotIndex = self.ComponentRotationSelect.currentIndex()
+        print('RotIndex: ' + str(RotIndex))
+        
         if(len(self.component.Imagelist)>0):
-            print('len: ' + str(len(self.component.Imagelist)))
+            #print('len: ' + str(len(self.component.Imagelist)))
             if self.BBox.isChecked():
                 print('bboxrot')
-                if self.bboxrot[0]:  # Top
+                if RotIndex==0:  # Top
                     height=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     width=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     h2=int(height/2)
                     w2=int(width/2)
                     bbox=[x-w2,y-h2,width,height]
-                    print('bbox: ' + str(bbox))
+                    #bbox=[x,y,width,height]
+                    
+                    #print('width: ' + str(self.component.Componentwidth))
+                    #print('height: ' + str(self.component.Componentheight))
+                    
                     if(len(self.component.Imagelist[self.counter.imagenumber].Top)==0):
                         self.component.Imagelist[self.counter.imagenumber].Top.append(bbox)
                     else:
@@ -517,8 +594,8 @@ class SearchPartGUI(QMainWindow):
                                 bboxfound=True
                         if bboxfound==False:
                             self.component.Imagelist[self.counter.imagenumber].Top.append(bbox)
-                    self.drawRectangle()
-                if self.bboxrot[1]:  # Right
+                    #self.drawRectangle()
+                if RotIndex==1:  # Right
                     width=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     height=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     h2=int(height/2)
@@ -534,8 +611,8 @@ class SearchPartGUI(QMainWindow):
                                 bboxfound=True
                         if bboxfound==False:
                             self.component.Imagelist[self.counter.imagenumber].Right.append(bbox)
-                    self.drawRectangle()              
-                if self.bboxrot[2]:  # Bottom
+                    #self.drawRectangle()              
+                if RotIndex==3:  # Bottom
                     height=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     width=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     h2=int(height/2)
@@ -551,8 +628,8 @@ class SearchPartGUI(QMainWindow):
                                 bboxfound=True
                         if bboxfound==False:
                             self.component.Imagelist[self.counter.imagenumber].Bottom.append(bbox)
-                    self.drawRectangle()         
-                if self.bboxrot[3]:  # Left
+                    #self.drawRectangle()         
+                if RotIndex==2:  # Left
                     width=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     height=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     h2=int(height/2)
@@ -569,29 +646,40 @@ class SearchPartGUI(QMainWindow):
                         if bboxfound==False:
                             self.component.Imagelist[self.counter.imagenumber].Left.append(bbox)                  
             else:
-                height=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
-                width=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                print('no bboxrot')
+                
                 bboxfound=False 
-                for b in self.component.Imagelist[self.counter.imagenumber].Topcorr:
-                    if (x>b[0] and x<b[0]+height and y>b[1] and y<b[1]+width):
-                        self.component.Imagelist[self.counter.imagenumber].Topcorr.remove(b)
-                        self.component.Imagelist[self.counter.imagenumber].Top.append(b)
+                for b in self.component.Imagelist[self.counter.imagenumber].Top:
+                    height=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                    width=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                    if (x>b[0] and x<b[0]+width and y>b[1] and y<b[1]+height):
+                        print('delete')
+                        #self.component.Imagelist[self.counter.imagenumber].Topcorr.remove(b)
+                        self.component.Imagelist[self.counter.imagenumber].Top.remove(b)
                         
                 for b in self.component.Imagelist[self.counter.imagenumber].Rightcorr:
+                    width=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                    height=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     if (x>b[0] and x<b[0]+height and y>b[1] and y<b[1]+width):
-                        self.component.Imagelist[self.counter.imagenumber].Rightcorr.remove(b)
-                        self.component.Imagelist[self.counter.imagenumber].Right.append(b)
+                        #self.component.Imagelist[self.counter.imagenumber].Rightcorr.remove(b)
+                        self.component.Imagelist[self.counter.imagenumber].Right.remove(b)
                         
                 for b in self.component.Imagelist[self.counter.imagenumber].Bottomcorr:
-                    if (x>b[0] and x<b[0]+height and y>b[1] and y<b[1]+width):
-                        self.component.Imagelist[self.counter.imagenumber].Bottomcorr.remove(b)
-                        self.component.Imagelist[self.counter.imagenumber].Bottom.append(b)
+                    height=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                    width=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                    if (x>b[0] and x<b[0]+width and y>b[1] and y<b[1]+height):
+                        #self.component.Imagelist[self.counter.imagenumber].Bottomcorr.remove(b)
+                        self.component.Imagelist[self.counter.imagenumber].Bottom.remove(b)
                         
                 for b in self.component.Imagelist[self.counter.imagenumber].Leftcorr:
+                    width=self.component.Componentheight * self.component.Imagelist[self.counter.imagenumber].scale_factor
+                    height=self.component.Componentwidth * self.component.Imagelist[self.counter.imagenumber].scale_factor
                     if (x>b[0] and x<b[0]+height and y>b[1] and y<b[1]+width):
-                        self.component.Imagelist[self.counter.imagenumber].Leftcorr.remove(b)
-                        self.component.Imagelist[self.counter.imagenumber].Left.append(b)
+                        #self.component.Imagelist[self.counter.imagenumber].Leftcorr.remove(b)
+                        self.component.Imagelist[self.counter.imagenumber].Left.remove(b)
+            self.draw()
             self.drawRectangle()  
+            
         
             
 def isfloat(x):
