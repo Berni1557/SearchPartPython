@@ -37,11 +37,16 @@ class SearchPartGUI(QMainWindow):
     
     def __init__(self):
         
+        
+        
         # Init GUI      
         super(SearchPartGUI,self).__init__()
-        loadUi('../qt/SearchPartGUI_V13.ui',self)
+        loadUi('../qt/SearchPartGUI_V14.ui',self)
         self.setWindowTitle('SearchPart')
+        
+        self.StatusLine.append("Initialization started")
 
+        
         # Set callbacks
         self.CreateCompDataset.clicked.connect(self.on_button_CreateCompDataset);
         self.LoadCompDataset.clicked.connect(self.on_button_LoadCompDataset);
@@ -58,7 +63,7 @@ class SearchPartGUI(QMainWindow):
         self.OCRAxialSymmetricHorizontal.stateChanged.connect(self.on_OCRAxialSymmetricHorizontal)
         self.OCRAxialSymmetricVertical.stateChanged.connect(self.on_OCRAxialSymmetricVertical)
         
-        self.OnlineDataBase.editingFinished.connect(self.on_OnlineDataBase)
+        self.OCROnlineDataBase.editingFinished.connect(self.on_OCROnlineDataBase)
         self.AxialSymmetricHorizontal.stateChanged.connect(self.on_AxialSymmetricHorizontal)
         self.AxialSymmetricVertical.stateChanged.connect(self.on_AxialSymmetricVertical)
         self.ComponentDescription.textChanged.connect(self.on_ComponentDescription)
@@ -83,8 +88,12 @@ class SearchPartGUI(QMainWindow):
         
         self.counter=SPM.imagecounter();
         
+        self.update_componentdata()
+        
         self.reset()
         self.draw()
+        
+        self.StatusLine.append("Initialization finished")
     
     def getPosition(self , event):
         x = event.pos().x()
@@ -95,7 +104,7 @@ class SearchPartGUI(QMainWindow):
         
     def scale(self):
         if (self.counter.imagenumber > -1):
-            s = str(self.component.Imagelist[self.counter.imagenumber].scale_factor) + ' [p/mm]'
+            s = str(round(self.component.Imagelist[self.counter.imagenumber].scale_factor,2)) + ' [p/mm]'
         else:
             s = 'Image scale [p/mm]'
         return s
@@ -124,6 +133,7 @@ class SearchPartGUI(QMainWindow):
                 self.component.Imagelist.append(Im)                          
         time.sleep(0.2)
         self.update_componentdata()
+        self.StatusLine.append("Added image " + Imname)
         
     @pyqtSlot()
     def on_ComponentMean(self):
@@ -174,8 +184,8 @@ class SearchPartGUI(QMainWindow):
         self.component.AxialSymmetricVertical = self.AxialSymmetricVertical.isChecked()
         
     @pyqtSlot()
-    def on_OnlineDataBase(self):
-        self.component.OnlineDataBase = self.OnlineDataBase.text()
+    def on_OCROnlineDataBase(self):
+        self.component.CompOCRdata.OCROnlineDataBase = self.OCROnlineDataBase.text()
         
     @pyqtSlot()
     def on_OCRText(self):
@@ -233,17 +243,20 @@ class SearchPartGUI(QMainWindow):
         
     @pyqtSlot()
     def on_button_LoadCompDataset(self):
+        self.StatusLine.append("Loading component started")
         filedialog = QFileDialog.getOpenFileName(self, "Select component file", '', '*.zip')
         filepath = filedialog[0]
         self.ComponentDatasetPath.setText(filepath)
         self.component = SPM.read_zipdb(self.component, filepath)
         self.update_componentdata();
         self.draw()
+        self.StatusLine.append("Loading component finished")
         
     def on_key(self):
         self.on_button_search()
         
     def reset(self):
+        self.StatusLine.append("Resetting component")
         self.ComponentHeight.setText('0')
         self.ComponentWidth.setText('0')
         self.ComponentID.setText('0')
@@ -329,19 +342,20 @@ class SearchPartGUI(QMainWindow):
         if(self.counter.imagenumber>self.counter.imagenumber_max):
             self.counter.imagenumber=self.counter.imagenumber_max
         
+        self.ComponentName.setText(self.component.Componentname)
         self.ComponentHeight.setText(str(self.component.Componentheight))
         self.ComponentWidth.setText(str(self.component.Componentwidth))
         self.ComponentID.setText(str(self.component.ComponentID))
         self.BorderSize.setText(str(self.component.Componentborder))
-        self.ComponentName.setText(self.component.Componentname)
+        
         
         self.AxialSymmetricHorizontal.setChecked(self.component.AxialSymmetricHorizontal)
         self.AxialSymmetricVertical.setChecked(self.component.AxialSymmetricVertical)
         
-        self.OCRAxialSymmetricHorizontal.setChecked(self.component.CompOCRdata.AxialSymmetricHorizontal)
-        self.OCRAxialSymmetricVertical.setChecked(self.component.CompOCRdata.AxialSymmetricVertical)
+        self.OCRAxialSymmetricHorizontal.setChecked(self.component.CompOCRdata.OCRAxialSymmetricHorizontal)
+        self.OCRAxialSymmetricVertical.setChecked(self.component.CompOCRdata.OCRAxialSymmetricVertical)
         
-        self.OnlineDataBase.setText(self.component.OnlineDataBase)
+        self.OCROnlineDataBase.setText(self.component.CompOCRdata.OCROnlineDataBase)
         self.OCRText.setText(self.component.CompOCRdata.OCRText)
         self.ComponentDescription.setText(self.component.Componentdescription);
         

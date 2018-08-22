@@ -850,14 +850,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QTextBrowser" name="textBrowser"/>
-    </item>
-    <item>
-     <widget class="QLabel" name="StatusLine">
-      <property name="text">
-       <string>Status line</string>
-      </property>
-     </widget>
+     <widget class="QTextBrowser" name="StatusLine"/>
     </item>
    </layout>
   </widget>

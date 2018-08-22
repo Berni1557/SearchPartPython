@@ -30,7 +30,7 @@ class imagecounter(object):
         return self.imagenumber <= self.imagenumber_max and self.imagenumber_max>-1
     
 class OCRdata(object):
-    OCRrotation = [False,False,False,False]
+    #OCRrotation = [False,False,False,False]
     OCR = False
     OCRlib = False
     charsubset = ''
@@ -39,8 +39,9 @@ class OCRdata(object):
     OCRborder_Bottom = 0
     OCRborder_Left = 0
     OCRText = ''
-    AxialSymmetricHorizontal = True
-    AxialSymmetricVertical = True
+    OCROnlineDataBase = ''
+    OCRAxialSymmetricHorizontal = True
+    OCRAxialSymmetricVertical = True
     
 class Component(object):
     Creation_date=''
@@ -49,7 +50,7 @@ class Component(object):
     Componentheight=10
     Componentwidth=20
     Componentborder=0
-    Componentrotation=[False,False,False,False]
+    #Componentrotation=[False,False,False,False]
     Componentdescription=''
     CompOCRdata=OCRdata()
     Imagename=list()
@@ -57,7 +58,6 @@ class Component(object):
     dom=''
     Componentmean=0
     Decisionmodel=None
-    OnlineDataBase = ''
     AxialSymmetricHorizontal = True
     AxialSymmetricVertical = True
     
@@ -83,7 +83,7 @@ class Component(object):
             self.Bottom=list()
             self.Left=list()
             self.Right=list()
-            self.Componentrotation=[False,False,False,False]
+            #self.Componentrotation=[False,False,False,False]
             self.AxialSymmetricHorizontal = True
             self.AxialSymmetricVertical = True
     
@@ -359,10 +359,20 @@ def create_dom(Component):
     node1.appendChild(text1)
     dom.childNodes[0].appendChild(node1)       
     
-    node1 = dom.createElement('Componentrotation')
-    text1 = dom.createTextNode(str(Component.Componentrotation))
+    #node1 = dom.createElement('Componentrotation')
+    #text1 = dom.createTextNode(str(Component.Componentrotation))
+    #node1.appendChild(text1)
+    #dom.childNodes[0].appendChild(node1)   
+    
+    node1 = dom.createElement('AxialSymmetricHorizontal')
+    text1 = dom.createTextNode(str(Component.AxialSymmetricHorizontal))
     node1.appendChild(text1)
-    dom.childNodes[0].appendChild(node1)           
+    dom.childNodes[0].appendChild(node1)       
+
+    node1 = dom.createElement('AxialSymmetricVertical')
+    text1 = dom.createTextNode(str(Component.AxialSymmetricVertical))
+    node1.appendChild(text1)
+    dom.childNodes[0].appendChild(node1)          
 
     node1 = dom.createElement('Componentdescription')
     text1 = dom.createTextNode(str(Component.Componentdescription))
@@ -371,10 +381,10 @@ def create_dom(Component):
 
     node1 = dom.createElement('CompOCRdata')
     
-    node2 = dom.createElement("OCRrotation")
-    text2 = dom.createTextNode(str(Component.CompOCRdata.OCRrotation))
-    node2.appendChild(text2)
-    node1.appendChild(node2)
+    #node2 = dom.createElement("OCRrotation")
+    #text2 = dom.createTextNode(str(Component.CompOCRdata.OCRrotation))
+    #node2.appendChild(text2)
+    #node1.appendChild(node2)
     
     node2 = dom.createElement("OCRborder")
     text2 = dom.createTextNode(str([Component.CompOCRdata.OCRborder_Top,Component.CompOCRdata.OCRborder_Right,Component.CompOCRdata.OCRborder_Bottom,Component.CompOCRdata.OCRborder_Left]))
@@ -394,7 +404,27 @@ def create_dom(Component):
     text2 = dom.createTextNode(str(Component.CompOCRdata.charsubset))
     node2.appendChild(text2)
     node1.appendChild(node2)
-            
+    
+    node2 = dom.createElement("OCRText")
+    text2 = dom.createTextNode(str(Component.CompOCRdata.OCRText))
+    node2.appendChild(text2)
+    node1.appendChild(node2)
+    
+    node2 = dom.createElement("OCROnlineDataBase")
+    text2 = dom.createTextNode(str(Component.CompOCRdata.OCROnlineDataBase))
+    node2.appendChild(text2)
+    node1.appendChild(node2)
+        
+    node2 = dom.createElement("OCRAxialSymmetricHorizontal")
+    text2 = dom.createTextNode(str(Component.CompOCRdata.OCRAxialSymmetricHorizontal))
+    node2.appendChild(text2)
+    node1.appendChild(node2)
+    
+    node2 = dom.createElement("OCRAxialSymmetricVertical")
+    text2 = dom.createTextNode(str(Component.CompOCRdata.OCRAxialSymmetricVertical))
+    node2.appendChild(text2)
+    node1.appendChild(node2)
+    
     dom.childNodes[0].appendChild(node1)      
         
     for Im in Component.Imagelist:
@@ -551,17 +581,26 @@ def read_zipdb(Component, filepath):
     if Component.dom.getElementsByTagName('Componentwidth').item(0).childNodes:
         Component.Componentwidth=float(Component.dom.getElementsByTagName('Componentwidth').item(0).firstChild.nodeValue)
     if Component.dom.getElementsByTagName('Componentborder').item(0).childNodes:
-        Component.border=Component.dom.getElementsByTagName('Componentborder').item(0).firstChild.nodeValue
+        Component.Componentborder=Component.dom.getElementsByTagName('Componentborder').item(0).firstChild.nodeValue
+        
     
-    s=Component.dom.getElementsByTagName('Componentrotation').item(0).firstChild.nodeValue
-    s1=s.split('[')
-    s2=s1[1].split(']')
-    str1=s2[0].split(',')
-    b=list()
-    for i in str1:
-        i=i.replace(" ", "")
-        b.append(str_to_bool(i))
-    Component.Componentrotation=b
+    
+    #s=Component.dom.getElementsByTagName('Componentrotation').item(0).firstChild.nodeValue
+    #s1=s.split('[')
+    #s2=s1[1].split(']')
+    #str1=s2[0].split(',')
+    #b=list()
+    #for i in str1:
+    #    i=i.replace(" ", "")
+    #    b.append(str_to_bool(i))
+    #Component.Componentrotation=b
+    if Component.dom.getElementsByTagName('AxialSymmetricHorizontal').item(0).childNodes:
+        Component.AxialSymmetricHorizontal=str_to_bool(Component.dom.getElementsByTagName('AxialSymmetricHorizontal').item(0).firstChild.nodeValue)
+    
+    if Component.dom.getElementsByTagName('AxialSymmetricVertical').item(0).childNodes:
+        Component.AxialSymmetricVertical=str_to_bool(Component.dom.getElementsByTagName('AxialSymmetricVertical').item(0).firstChild.nodeValue)
+    
+    
     
     if Component.dom.getElementsByTagName('Componentdescription').item(0).childNodes:
         Component.Componentdescription=Component.dom.getElementsByTagName('Componentdescription').item(0).firstChild.nodeValue
@@ -575,16 +614,29 @@ def read_zipdb(Component, filepath):
     if Component.dom.getElementsByTagName('charsubset').item(0).childNodes:
         s=Component.dom.getElementsByTagName('charsubset').item(0).childNodes[0].nodeValue
         Component.CompOCRdata.charsubset=s
+    if Component.dom.getElementsByTagName('OCRText').item(0).childNodes:
+        s=Component.dom.getElementsByTagName('OCRText').item(0).childNodes[0].nodeValue
+        Component.CompOCRdata.OCRText=s
+    if Component.dom.getElementsByTagName('OCROnlineDataBase').item(0).childNodes:
+        s=Component.dom.getElementsByTagName('OCROnlineDataBase').item(0).childNodes[0].nodeValue
+        Component.CompOCRdata.OCROnlineDataBase=s
+        
+    if Component.dom.getElementsByTagName('OCRAxialSymmetricHorizontal').item(0).childNodes:
+        Component.CompOCRdata.OCRAxialSymmetricHorizontal=str_to_bool(Component.dom.getElementsByTagName('OCRAxialSymmetricHorizontal').item(0).childNodes[0].nodeValue)
+        
+    if Component.dom.getElementsByTagName('OCRAxialSymmetricVertical').item(0).childNodes:
+        Component.CompOCRdata.OCRAxialSymmetricVertical=str_to_bool(Component.dom.getElementsByTagName('OCRAxialSymmetricVertical').item(0).childNodes[0].nodeValue)
+      
     # get OCRrotation
-    s=Component.dom.getElementsByTagName('OCRrotation').item(0).firstChild.nodeValue
-    s1=s.split('[')
-    s2=s1[1].split(']')
-    str1=s2[0].split(',')
-    b=list()
-    for i in str1:
-        i=i.replace(" ", "")
-        b.append(str_to_bool(i))
-    Component.CompOCRdata.OCRrotation=b
+    #s=Component.dom.getElementsByTagName('OCRrotation').item(0).firstChild.nodeValue
+    #s1=s.split('[')
+    #s2=s1[1].split(']')
+    #str1=s2[0].split(',')
+    #b=list()
+    #for i in str1:
+    #    i=i.replace(" ", "")
+    #    b.append(str_to_bool(i))
+    #Component.CompOCRdata.OCRrotation=b
     # get OCRborder
     s=Component.dom.getElementsByTagName('OCRborder').item(0).firstChild.nodeValue
     s1=s.split('[')
