@@ -541,9 +541,9 @@ def write_zipdb(Component, filepath_ext):
         zipf.write(base_filename) 
     zipf.close()
     
-def read_zipdb(Component, filepath):
+def read_zipdb(Component, filepath, StatusLine):
     
-    print('filepath1: ' + filepath)
+    #print('filepath1: ' + filepath)
     
     base_folder, base_filename = os.path.split(filepath)
     
@@ -653,6 +653,7 @@ def read_zipdb(Component, filepath):
         
     images=Component.dom.getElementsByTagName('Image')
     for image in images:
+       
         node=image.getElementsByTagName('Imagepath_relative')
         Imagepath_relative=node[0].childNodes[0].nodeValue
         
@@ -663,6 +664,9 @@ def read_zipdb(Component, filepath):
         
         node=image.getElementsByTagName('Imagename')
         Im.Imagename=node[0].childNodes[0].nodeValue
+        
+        StatusLine.append('reading image: ' + Im.Imagename)
+        print('reading image: ' + Im.Imagename);
         
         n1=image.getElementsByTagName('Top')
         for n2 in n1:

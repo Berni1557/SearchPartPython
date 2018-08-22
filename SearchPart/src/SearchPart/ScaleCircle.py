@@ -89,7 +89,7 @@ class ScaleCircle(object):
         #cv2.namedWindow('win1',cv2.cv.CV_NORMAL)
         #cv2.imshow('win1',closing*255)
         #cv2.waitKey()
-        print('scale_factor: ' + str(scale_factor))
+        #print('scale_factor: ' + str(scale_factor))
         return scale_factor
         
         

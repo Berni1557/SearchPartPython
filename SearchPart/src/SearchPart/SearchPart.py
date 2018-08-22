@@ -92,6 +92,7 @@ class SearchPartGUI(QMainWindow):
         
         self.reset()
         self.draw()
+        self.drawRectangle()
         
         self.StatusLine.append("Initialization finished")
     
@@ -125,7 +126,8 @@ class SearchPartGUI(QMainWindow):
         k=0
         for f in filenames:
             k=k+1
-            print('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
+            #print('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
+            self.StatusLine.append('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
             Imname=os.path.basename(f)
             Im=SPM.Imagedata(f)
             if not Im.scale_factor==False:
@@ -155,6 +157,7 @@ class SearchPartGUI(QMainWindow):
             self.counter.imagenumber=self.counter.imagenumber-1;
         self.update_componentdata()
         self.draw()
+        self.drawRectangle()
         
     @pyqtSlot()
     def on_button_Next(self):
@@ -162,6 +165,8 @@ class SearchPartGUI(QMainWindow):
             self.counter.imagenumber=self.counter.imagenumber+1;
         self.update_componentdata()
         self.draw()
+        self.drawRectangle()
+        
     
     @pyqtSlot()
     def on_OCRAxialSymmetricHorizontal(self):
@@ -231,6 +236,7 @@ class SearchPartGUI(QMainWindow):
 
     @pyqtSlot()
     def on_button_SaveCompDataset(self):
+        self.StatusLine.setText('Saving component started')
         filedialog = QFileDialog.getSaveFileName(self, "Select component file", '', '*.zip')
         filepath = filedialog[0]
         self.ComponentDatasetPath.setText(filepath)
@@ -240,6 +246,7 @@ class SearchPartGUI(QMainWindow):
             SPM.write_zipdb(self.component, filepath)
         else:
             self.StatusLine.setText('Can not create file: ' + filepath)
+        self.StatusLine.setText('Saving component finished')
         
     @pyqtSlot()
     def on_button_LoadCompDataset(self):
@@ -247,7 +254,7 @@ class SearchPartGUI(QMainWindow):
         filedialog = QFileDialog.getOpenFileName(self, "Select component file", '', '*.zip')
         filepath = filedialog[0]
         self.ComponentDatasetPath.setText(filepath)
-        self.component = SPM.read_zipdb(self.component, filepath)
+        self.component = SPM.read_zipdb(self.component, filepath, self.StatusLine)
         self.update_componentdata();
         self.draw()
         self.StatusLine.append("Loading component finished")
@@ -389,13 +396,13 @@ class SearchPartGUI(QMainWindow):
 #            self.Imscale.set_label(str(self.DSComponent.Imagelist[self.imagecounter.imagenumber].scale_factor) + ' [p/mm]') 
 #        self.drawarea.queue_draw()
     def draw(self):
-        print('draw')
+        #print('draw')
         #print('Image size:' + str(self.Image.size().width()))
         #print('Image size:' + str(self.Image.size().height()))
         
-        print('Image size:' + str(len(self.component.Imagelist)))
-        print('imagenumber:' + str(self.counter.imagenumber))
-        print('imagenumber_max:' + str(self.counter.imagenumber_max))
+        #print('Image size:' + str(len(self.component.Imagelist)))
+        #print('imagenumber:' + str(self.counter.imagenumber))
+        #print('imagenumber_max:' + str(self.counter.imagenumber_max))
         
         if self.counter.valid():
             imagecv = self.component.Imagelist[self.counter.imagenumber].image
