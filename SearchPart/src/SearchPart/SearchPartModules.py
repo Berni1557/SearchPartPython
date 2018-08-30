@@ -19,6 +19,11 @@ import math
 class imagecounter(object): 
     imagenumber = -1     
     imagenumber_max = -1;
+    
+    def __init__(self, imagenumber = -1, imagenumber_max = -1):
+        self.imagenumber = imagenumber;
+        self.imagenumber_max = imagenumber_max;
+        
     def tostring(self):
         if self.imagenumber_max>=0:
             imstr=str(self.imagenumber+1) + " / " + str(self.imagenumber_max+1)

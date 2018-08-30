@@ -18,19 +18,33 @@ class RegionGrowing(object):
         self.m_show = show
         self.m_scale = scale
         
-    def drawContours(self, regions):
+    def drawContours(self, regions, show = True, scale = 1.0):
         """
         Draw contours
         """
-        dims = regions[0].shape
+        print('shape1: ', regions[0].shape)
+        print('scale1: ', scale)
+        
+        regions_res = imresize(regions[0][:,:,0], scale)
+        dims = regions_res.shape
+        print('dims1: ', dims)
         image_cont = np.zeros((dims[0],dims[1],1), np.uint8)
-        cv2.namedWindow("Contours", cv2.WINDOW_NORMAL)
-        for im in regions:  
-            _, contours, hierarchy = cv2.findContours(im.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-            cv2.drawContours(image_cont, contours, -1, 255, 1);  
-        cv2.imshow('Contours', image_cont) 
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        image_region_cont = []
+        if show:
+            cv2.namedWindow("Contours", cv2.WINDOW_NORMAL)
+        for im in regions:
+            im_res = imresize(im[:,:,0], self.m_scale)
+            _, contours, hierarchy = cv2.findContours(im_res.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+            cv2.drawContours(image_cont, contours, -1, 255, 1); 
+            
+            region_cont = np.zeros((dims[0],dims[1],1), np.uint8)
+            cv2.drawContours(region_cont, contours, -1, 255, 1);
+            image_region_cont.append(region_cont)
+        if show:
+            cv2.imshow('Contours', image_cont) 
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        return image_cont, image_region_cont
         
     def simple_region_growing(self, img, seed, threshold, mask):
         """
@@ -60,6 +74,7 @@ class RegionGrowing(object):
         if (seed[0] or seed[1] ) < 0 :
             raise ValueError("(%s) Seed should have positive values!" % (sys._getframe().f_code.co_name))
         elif ((seed[0] > dims[0]) or (seed[1] > dims[1])):
+            print('seed err: ', seed)
             raise ValueError("(%s) Seed values greater than img size!" % (sys._getframe().f_code.co_name))
     
         #reg = cv2.CreateImage( dims, cv2.IPL_DEPTH_8U, 1)
@@ -67,7 +82,7 @@ class RegionGrowing(object):
         #cv2.Zero(reg)
     
         #parameters
-        mean_reg = img[seed[1], seed[0]].astype(float)
+        mean_reg = img[seed[0], seed[1]].astype(float)
        
         size = 0
         pix_area = dims[0]*dims[1]
@@ -91,12 +106,12 @@ class RegionGrowing(object):
                 #check if it belongs to the image
                 is_in_img = dims[0]>temp_pix[0]>0 and dims[1]>temp_pix[1]>0 #returns boolean
                 #candidate is taken if not already selected before
-                if (is_in_img and (reg[temp_pix[1], temp_pix[0]]==0) and (mask[temp_pix[1], temp_pix[0]]==0)):
+                if (is_in_img and (reg[temp_pix[0], temp_pix[1]]==0) and (mask[temp_pix[0], temp_pix[1]]==0)):
                     contour.append(temp_pix)
-                    pix = img[temp_pix[1], temp_pix[0]]
+                    pix = img[temp_pix[0], temp_pix[1]]
                     contour_val.append(pix.astype(float))
-                    reg[temp_pix[1], temp_pix[0]] = 255
-                    mask[temp_pix[1], temp_pix[0]] = 255
+                    reg[temp_pix[0], temp_pix[1]] = 255
+                    mask[temp_pix[0], temp_pix[1]] = 255
                     
                     
             if len(contour_val) > 0:
@@ -109,8 +124,8 @@ class RegionGrowing(object):
                 dist = min(dist_list)    #get min distance
                 index = dist_list.index(min(dist_list)) #mean distance index
                 
-                reg[cur_pix[1], cur_pix[0]] = 255
-                mask[cur_pix[1], cur_pix[0]] = 255
+                reg[cur_pix[0], cur_pix[1]] = 255
+                mask[cur_pix[0], cur_pix[1]] = 255
         
                 #updating mean MUST BE FLOAT
                 size += 1 # updating region size
@@ -130,8 +145,8 @@ class RegionGrowing(object):
 
             else:
                 HasNeighbors = False
-                reg[cur_pix[1], cur_pix[0]] = 255
-                mask[cur_pix[1], cur_pix[0]] = 255
+                reg[cur_pix[0], cur_pix[1]] = 255
+                mask[cur_pix[0], cur_pix[1]] = 255
     
         return reg, mask
     
@@ -140,11 +155,15 @@ class RegionGrowing(object):
         An implementation of region growing.
         """
         
+        print('region_growing scale: ', self.m_scale)
+        
         image = imresize(image, self.m_scale)
         reg_size = self.m_reg_size_min        
         dims = image.shape
         mask = np.zeros((dims[0],dims[1],1), np.uint8)
         mask_seed = np.zeros((dims[0],dims[1],1), np.uint8)
+        
+        print('dims: ', dims)
         
         if self.m_show:
             cv2.namedWindow( "mask", cv2.WINDOW_NORMAL )
@@ -175,7 +194,9 @@ class RegionGrowing(object):
             # Extract random seed
             Index = np.where(np.equal(mask_seed, 255))
             pos = randint(0, len(Index[0])-1)
-            seed = (Index[1][pos], Index[0][pos])
+            #seed = (Index[1][pos], Index[0][pos])
+            seed = (Index[0][pos], Index[1][pos])
+            print('seed: ', seed)
             
             # Do region growing
             reg, mask = self.simple_region_growing(image, seed, self.m_threshold, mask)

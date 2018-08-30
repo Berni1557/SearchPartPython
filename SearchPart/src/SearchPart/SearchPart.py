@@ -11,6 +11,7 @@ import string
 import cv2
 import numpy as np
 import SearchPartModules as SPM
+from BackgroundDetector import BackgroundDetector, BGClass
 
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtGui import QPainter, QColor, QBrush
@@ -20,6 +21,8 @@ from PyQt5.QtCore import Qt, QTimer, QRectF
 
 from PyQt5.QtCore import pyqtSignal, Qt, QDir, QFile, QFileInfo, QPoint, QTextStream, QTimer, QUrl, QRect
 
+
+    
 class SearchPartGUI(QMainWindow):
     
     # Events
@@ -32,8 +35,13 @@ class SearchPartGUI(QMainWindow):
     #scaleVisualization = 1.0;
     scaleVisualization = [800,600]
     scaleVisualizationFactor = [1.0, 1.0]
+    scaleVisualizationBG = [800,600]
+    scaleVisualizationFactorBG = [1.0, 1.0]
     bboxrot = [True,False,False,False]
     pixmap = None
+    pixmapBG = None
+    backgroundDetector = BackgroundDetector()
+    showContours = True
     
     def __init__(self):
         
@@ -41,16 +49,19 @@ class SearchPartGUI(QMainWindow):
         
         # Init GUI      
         super(SearchPartGUI,self).__init__()
-        loadUi('../qt/SearchPartGUI_V14.ui',self)
+        loadUi('../qt/SearchPartGUI_V17.ui',self)
         self.setWindowTitle('SearchPart')
         
         self.StatusLine.append("Initialization started")
 
         
         # Set callbacks
-        self.CreateCompDataset.clicked.connect(self.on_button_CreateCompDataset);
-        self.LoadCompDataset.clicked.connect(self.on_button_LoadCompDataset);
-        self.SaveCompDataset.clicked.connect(self.on_button_SaveCompDataset);
+        self.CreateCompDataset.clicked.connect(self.on_button_CreateCompDataset)
+        self.LoadCompDataset.clicked.connect(self.on_button_LoadCompDataset)
+        self.SaveCompDataset.clicked.connect(self.on_button_SaveCompDataset)
+        
+        self.LoadBackgroundModel.clicked.connect(self.on_button_LoadBackgroundModel)
+        self.SaveBackgroundModel.clicked.connect(self.on_button_SaveBackgroundModel)
         
         self.ComponentName.editingFinished.connect(self.on_ComponentName);
         self.ComponentDatasetPath.editingFinished.connect(self.on_ComponentDatasetPath)
@@ -71,6 +82,9 @@ class SearchPartGUI(QMainWindow):
         self.Back.clicked.connect(self.on_button_Back);
         self.Next.clicked.connect(self.on_button_Next);
         
+        self.BackBG.clicked.connect(self.on_button_BackBG);
+        self.NextBG.clicked.connect(self.on_button_NextBG);
+        
         self.BBox.stateChanged.connect(self.on_BBox)
         #self.DeleteBBox.clicked.connect(self.on_DeleteBBox);
         self.ComponentMean.clicked.connect(self.on_ComponentMean)
@@ -78,17 +92,26 @@ class SearchPartGUI(QMainWindow):
         self.DeleteImage.clicked.connect(self.on_DeleteImage)
         
         
+        
         self.ImageNumber.setText(self.counter.tostring())
         self.ImageScale.setText(self.scale())
         
         self.Image.mousePressEvent = self.getPosition
+        self.ImageBG.mousePressEvent = self.getPositionBG
+        
+        self.LoadBackgroundImages.clicked.connect(self.on_LoadBackgroundImages)
         
         
         self.component=SPM.Component(self,None)
         
-        self.counter=SPM.imagecounter();
+        self.counter=SPM.imagecounter()
+        self.counterBG=SPM.imagecounter()
+        
+        self.RegionGrowing.clicked.connect(self.on_button_RegionGrowing)
+        self.ShowContours.stateChanged.connect(self.on_ShowContours)
         
         self.update_componentdata()
+        self.update_backgrounddata()
         
         self.reset()
         self.draw()
@@ -96,12 +119,79 @@ class SearchPartGUI(QMainWindow):
         
         self.StatusLine.append("Initialization finished")
     
+    @pyqtSlot()
+    def on_ShowContours(self):
+        self.showContour = self.ShowContours.isChecked()
+        
+    @pyqtSlot()
+    def on_button_RegionGrowing(self):
+        self.StatusLine.append('Starting region growing')
+        self.backgroundDetector.regionGrowing()
+        self.update_backgrounddata()
+        self.drawBG()
+        self.StatusLine.append('Finished region growing')
+        
+    @pyqtSlot()
+    def on_button_SaveBackgroundModel(self):
+        self.StatusLine.append('Saving background model started')
+        filedialog = QFileDialog.getSaveFileName(self, "Select background model file", '', '*.zip')
+        filepath = filedialog[0]
+        #self.ComponentDatasetPath.setText(filepath)
+        #filepath = 'H:/Projects/SearchPartPython/SearchPartPython1/SearchPart/data/file.zip'
+        creatable = SPM.is_path_exists_or_creatable(filepath)
+        if creatable:
+            #SPM.write_zipdb(self.component, filepath)
+            self.backgroundDetector.write_zipdb(filepath)
+        else:
+            self.StatusLine.append('Can not create file: ' + filepath)
+        self.StatusLine.append('Saving background model finished')
+        
+    @pyqtSlot()
+    def on_button_LoadBackgroundModel(self):
+        self.StatusLine.append("Loading background model started")
+        filedialog = QFileDialog.getOpenFileName(self, "Select background model file", '', '*.zip')
+        filepath = filedialog[0]
+        #self.ComponentDatasetPath.setText(filepath)
+        #self.component = SPM.read_zipdb(self.component, filepath, self.StatusLine)
+        self.backgroundDetector.read_zipdb(filepath, self.StatusLine)
+        self.update_backgrounddata();
+        self.drawBG()
+        self.StatusLine.append("Loading background model finished")
+        
+    @pyqtSlot()
+    def on_LoadBackgroundImages(self):
+        names = QFileDialog.getOpenFileNames(self,  'Open file','H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/images/',"Images (*.png *.tiff *.jpg)")
+        filenames = names[0];
+        print('filenames: ' + str(filenames))
+        k=0
+        for f in filenames:
+            k=k+1
+            #print('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
+            self.StatusLine.append('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
+            Imname=os.path.basename(f)
+            Im=SPM.Imagedata(f)
+            if not Im.scale_factor==False:
+                self.backgroundDetector.Imagelist.append(Im)                        
+        time.sleep(0.2)
+        self.counterBG = SPM.imagecounter(0, len(self.backgroundDetector.Imagelist)-1)
+        self.update_backgrounddata()
+        self.drawBG()
+        
+        self.StatusLine.append("Added image " + Imname)
+        
     def getPosition(self , event):
         x = event.pos().x()
         y = event.pos().y()
-        #print('x: ' + str(x))
-        #print('y: ' + str(y))
         self.appendBBox(x, y)
+        
+    def getPositionBG(self , event):
+        x = event.pos().x()
+        y = event.pos().y()
+        idx = self.LabelBG.currentIndex()
+        sc = self.scaleVisualizationFactorBG[0]
+        self.backgroundDetector.setBGClass(x, y, self.counterBG.imagenumber, BGClass(idx), sc)
+        self.drawBG()
+
         
     def scale(self):
         if (self.counter.imagenumber > -1):
@@ -167,7 +257,20 @@ class SearchPartGUI(QMainWindow):
         self.draw()
         self.drawRectangle()
         
-    
+    @pyqtSlot()
+    def on_button_BackBG(self):
+        if(self.counterBG.imagenumber>0):
+            self.counterBG.imagenumber=self.counterBG.imagenumber-1;
+        self.update_backgrounddata()
+        self.drawBG()
+        
+    @pyqtSlot()
+    def on_button_NextBG(self):
+        if(self.counterBG.imagenumber<self.counterBG.imagenumber_max):
+            self.counterBG.imagenumber=self.counterBG.imagenumber+1;
+        self.update_backgrounddata()
+        self.drawBG()
+        
     @pyqtSlot()
     def on_OCRAxialSymmetricHorizontal(self):
         self.component.CompOCRdata.AxialSymmetricHorizontal = self.OCRAxialSymmetricHorizontal.isChecked()
@@ -236,7 +339,7 @@ class SearchPartGUI(QMainWindow):
 
     @pyqtSlot()
     def on_button_SaveCompDataset(self):
-        self.StatusLine.setText('Saving component started')
+        self.StatusLine.append('Saving component started')
         filedialog = QFileDialog.getSaveFileName(self, "Select component file", '', '*.zip')
         filepath = filedialog[0]
         self.ComponentDatasetPath.setText(filepath)
@@ -245,8 +348,8 @@ class SearchPartGUI(QMainWindow):
         if creatable:
             SPM.write_zipdb(self.component, filepath)
         else:
-            self.StatusLine.setText('Can not create file: ' + filepath)
-        self.StatusLine.setText('Saving component finished')
+            self.StatusLine.append('Can not create file: ' + filepath)
+        self.StatusLine.append('Saving component finished')
         
     @pyqtSlot()
     def on_button_LoadCompDataset(self):
@@ -277,68 +380,7 @@ class SearchPartGUI(QMainWindow):
         self.ImageNumber.setText('ImageNumber: 0 / 0')
         
         self.DSComponent=SPM.Component(self.parent, '')
-        
-        
-        
-#        height=self.builder.get_object('height')
-#        height.set_text('0')
-#        width=self.builder.get_object('width')
-#        width.set_text('0')            
-#        CompID=self.builder.get_object('CompID')
-#        CompID.set_text('0')        
-#        Compborder=self.builder.get_object('Compborder')
-#        Compborder.set_text('0') 
-#        Compname=self.builder.get_object('Compname')
-#        Compname.set_text('')        
-#        #Comppath=self.builder.get_object('Comppath')
-#        #Comppath.set_text('') 
-#                
-#        Comp_top=self.builder.get_object('Comp_top')
-#        Comp_top.set_active(False)        
-#        Comp_right=self.builder.get_object('Comp_right')
-#        Comp_right.set_active(False)  
-#        Comp_bottom=self.builder.get_object('Comp_bottom')
-#        Comp_bottom.set_active(False)  
-#        Comp_left=self.builder.get_object('Comp_left')
-#        Comp_left.set_active(False)   
-#
-#        OCRborder_Top=self.builder.get_object('OCRborder_Top')
-#        OCRborder_Top.set_text('Top')  
-#        OCRborder_Right=self.builder.get_object('OCRborder_Right')
-#        OCRborder_Right.set_text('Right')  
-#        OCRborder_Bottom=self.builder.get_object('OCRborder_Bottom')
-#        OCRborder_Bottom.set_text('Bottom')  
-#        OCRborder_Left=self.builder.get_object('OCRborder_Left')
-#        OCRborder_Left.set_text('Left')     
-#
-#        OCR_top=self.builder.get_object('OCR_top')
-#        OCR_top.set_active(False)        
-#        OCR_right=self.builder.get_object('OCR_right')
-#        OCR_right.set_active(False)  
-#        OCR_bottom=self.builder.get_object('OCR_bottom')
-#        OCR_bottom.set_active(False)  
-#        OCR_left=self.builder.get_object('OCR_left')
-#        OCR_left.set_active(False)      
-#        charsubset=self.builder.get_object('charsubset')
-#        charsubset.set_text('ABCDEFGHIJKLMONOPQRSTUVWXYZ123456789/')   
-#
-#        Compdescription=self.builder.get_object('Compdescription')
-#        Compdescription.set_text('')  
-#        
-#        selectbbox=self.builder.get_object('selectbbox')
-#        selectbbox.set_active(False) 
-#        
-#        selectOCRborder=self.builder.get_object('selectOCRborder')
-#        selectOCRborder.set_active(False) 
-#        
-#        Imscale=self.builder.get_object('Imscale')
-#        Imscale.set_label('0.0 [p/mm]')   
-#        
-#        Imnumber=self.builder.get_object('Imnumber')
-#        Imnumber.set_label(self.imagecounter.tostring()) 
-        
-#        self.DSComponent=SPM.Component(self,None)
-
+  
     def update_componentdata(self):
         self.counter.imagenumber_max=len(self.component.Imagelist)-1
         
@@ -371,44 +413,78 @@ class SearchPartGUI(QMainWindow):
         self.ImageNumber.setText(self.counter.tostring()) 
         self.ImageScale.setText(self.scale()) 
         self.draw()
-#
-#        self.OCR_top.set_active(self.DSComponent.CompOCRdata.OCRrotation[0])
-#        self.OCR_right.set_active(self.DSComponent.CompOCRdata.OCRrotation[1])
-#        self.OCR_bottom.set_active(self.DSComponent.CompOCRdata.OCRrotation[2])
-#        self.OCR_left.set_active(self.DSComponent.CompOCRdata.OCRrotation[3])
-#        
-#        self.Octopart.set_active(self.DSComponent.CompOCRdata.OCRlib)
-#        self.OCR.set_active(self.DSComponent.CompOCRdata.OCR)
-#        self.Octopart.set_active(self.DSComponent.CompOCRdata.OCRlib)
-#
-#        self.OCRborder_Top.set_text(str(self.DSComponent.CompOCRdata.OCRborder_Top))
-#        self.OCRborder_Right.set_text(str(self.DSComponent.CompOCRdata.OCRborder_Right))
-#        self.OCRborder_Bottom.set_text(str(self.DSComponent.CompOCRdata.OCRborder_Bottom))
-#        self.OCRborder_Left.set_text(str(self.DSComponent.CompOCRdata.OCRborder_Left))
-#                
-#        self.charsubset.set_text(self.DSComponent.CompOCRdata.charsubset)
-#        self.Compdescription.set_text(self.DSComponent.Componentdescription)
-#        
-#        
-#        self.Imnumber.set_label(self.imagecounter.tostring()) 
-#
-#        if len(self.DSComponent.Imagelist)>0:
-#            self.Imscale.set_label(str(self.DSComponent.Imagelist[self.imagecounter.imagenumber].scale_factor) + ' [p/mm]') 
-#        self.drawarea.queue_draw()
+        
+    def update_backgrounddata(self):
+        self.counterBG.imagenumber_max=len(self.backgroundDetector.Imagelist)-1
+        if(self.counterBG.imagenumber==-1):
+            self.counterBG.imagenumber=0
+        if(self.counterBG.imagenumber>self.counterBG.imagenumber_max):
+            self.counterBG.imagenumber=self.counterBG.imagenumber_max
+        self.ImageNumberBG.setText(self.counterBG.tostring()) 
+        
+        self.ShowContours.setChecked(self.showContours)
+        
+        self.drawBG()
+
+    def drawBG(self):
+        
+        if self.counterBG.valid():
+            imagecv = self.backgroundDetector.Imagelist[self.counterBG.imagenumber].image          
+            self.scaleVisualizationFactorBG[0] = self.scaleVisualizationBG[0] / imagecv.shape[1]
+            self.scaleVisualizationFactorBG[1] = self.scaleVisualizationBG[1] / imagecv.shape[0]
+            imagecv = cv2.resize(imagecv, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1])) 
+            
+            if self.showContour and len(self.backgroundDetector.ContourImagelist)==len(self.backgroundDetector.Imagelist):
+                
+                regions = self.backgroundDetector.RegionsList[self.counterBG.imagenumber]
+                
+                ## Show contours
+                image_cont = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
+                for im in regions:
+                    im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
+                    _, contours, hierarchy = cv2.findContours(im_res.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)                  
+                    cv2.drawContours(image_cont, contours, -1, [255,255,255], 1); 
+                imagecv[np.where((image_cont==[255,255,255]).all(axis=2))] = [255,255,255]
+                
+                # Draw classes
+                for i, im in enumerate(regions):
+                    if self.backgroundDetector.RegionsClass[self.counterBG.imagenumber][i]==BGClass.BACKGROUND:
+                        im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
+                        mask = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
+                        mask[:,:,0]=im_res
+                        mask[:,:,1]=im_res
+                        mask[:,:,2]=im_res
+                        imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [255,0,0]
+                    if self.backgroundDetector.RegionsClass[self.counterBG.imagenumber][i]==BGClass.PART:
+                        im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
+                        mask = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
+                        mask[:,:,0]=im_res
+                        mask[:,:,1]=im_res
+                        mask[:,:,2]=im_res
+                        imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [0,0,250]    
+                
+            image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888)
+            self.pixmapBG = QtGui.QPixmap(image)
+            self.ImageBG.setPixmap(self.pixmapBG)
+
+        else:
+            imagecv = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)           
+            self.scaleVisualizationFactorBG[0] = self.scaleVisualizationBG[0] / imagecv.shape[1]
+            self.scaleVisualizationFactorBG[1] = self.scaleVisualizationBG[1] / imagecv.shape[0]
+            imagecv = cv2.resize(imagecv, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1])) 
+            image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888)
+            self.pixmapBG = QtGui.QPixmap(image)
+            self.ImageBG.setPixmap(self.pixmapBG)
+
     def draw(self):
-        #print('draw')
-        #print('Image size:' + str(self.Image.size().width()))
-        #print('Image size:' + str(self.Image.size().height()))
-        
-        #print('Image size:' + str(len(self.component.Imagelist)))
-        #print('imagenumber:' + str(self.counter.imagenumber))
-        #print('imagenumber_max:' + str(self.counter.imagenumber_max))
-        
+
         if self.counter.valid():
             imagecv = self.component.Imagelist[self.counter.imagenumber].image
             
             self.scaleVisualizationFactor[0] = self.scaleVisualization[0] / imagecv.shape[1]
             self.scaleVisualizationFactor[1] = self.scaleVisualization[1] / imagecv.shape[0]
+            
+            
             
             #print('scaleVisualizationFactor: ' + str(self.scaleVisualizationFactor))
             #print('scaleVisualization: ' + str(self.scaleVisualization))
@@ -431,6 +507,8 @@ class SearchPartGUI(QMainWindow):
             
             self.scaleVisualizationFactor[0] = self.scaleVisualization[0] / imagecv.shape[1]
             self.scaleVisualizationFactor[1] = self.scaleVisualization[1] / imagecv.shape[0]
+            
+           
             
             #print('scaleVisualizationFactor: ' + str(self.scaleVisualizationFactor))
             #print('scaleVisualization: ' + str(self.scaleVisualization))
