@@ -8,7 +8,7 @@ class RegionGrowing(object):
     
     # RegionGrowing members
     m_threshold = 5
-    m_reg_size_min = 100
+    m_reg_size_min = 1000
     m_show = True
     m_scale = 1.0
     
@@ -22,12 +22,9 @@ class RegionGrowing(object):
         """
         Draw contours
         """
-        print('shape1: ', regions[0].shape)
-        print('scale1: ', scale)
         
         regions_res = imresize(regions[0][:,:,0], scale)
         dims = regions_res.shape
-        print('dims1: ', dims)
         image_cont = np.zeros((dims[0],dims[1],1), np.uint8)
         image_region_cont = []
         if show:
@@ -214,10 +211,14 @@ class RegionGrowing(object):
         if self.m_show:
             cv2.destroyAllWindows()
             
-        regionsMap = np.zeros((dims[0],dims[1],1), np.uint8)
+        regionsMap = np.zeros((dims[0],dims[1],1), np.uint16)
+        
         for i in range(0, len(regions)-1):
             im = (i+1)*(regions[i]/255)
             regionsMap = regionsMap + im
+        
+        regionsMap = regionsMap.astype(np.uint16)
+        
         
         biggest = np.amax(regionsMap)
         print('biggest: ', biggest)

@@ -6,6 +6,7 @@ import zipfile
 from SearchPartModules import Imagedata
 import numpy as np
 from enum import Enum
+import cv2
                
 class BGClass(Enum): 
     UNKNOWN = 0
@@ -26,7 +27,7 @@ class BackgroundDetector(object):
         threshold = 10
         reg_size_min=100
         show = True
-        scale = 0.05
+        scale = 0.03
         self.RegionGrower = RegionGrowing(threshold, reg_size_min, show, scale)
 
     def setBGClass(self, x, y, imagenumber, classBG, sc):
@@ -55,7 +56,7 @@ class BackgroundDetector(object):
             show = False
             ContourImage = self.RegionGrower.drawContours(regions, show)
             self.ContourImagelist.append(ContourImage)
-            #self.RegionsMap.append(regionsMap)
+            self.RegionsMap.append(regionsMap)
             
             classlist = []
             for i in range(len(regions)):
@@ -78,7 +79,7 @@ class BackgroundDetector(object):
         base = dom.createElement('datasetstruct')
         dom.appendChild(base)    
             
-        for Im in self.Imagelist:
+        for i, Im in enumerate(self.Imagelist):
             node1 = dom.createElement('Image')
             
             node2 = dom.createElement("Imagename")
@@ -87,8 +88,20 @@ class BackgroundDetector(object):
             node1.appendChild(node2)
     
             node2 = dom.createElement("Imagepath_relative")
-            #text2 = dom.createTextNode(Im.Imagepath)
             text2 = dom.createTextNode(Im.Imagepath_relative)      
+            node2.appendChild(text2)
+            node1.appendChild(node2)
+            
+            node2 = dom.createElement("RegionsMap")
+            directory, base_filename = os.path.split(self.Imagelist[i].Imagepath)
+            filename = os.path.splitext(base_filename)[0]
+            filepathImageRelative = filename + '_RegionsMap.png'
+            text2 = dom.createTextNode(filepathImageRelative)      
+            node2.appendChild(text2)
+            node1.appendChild(node2)
+            
+            node2 = dom.createElement("RegionsClass")
+            text2 = dom.createTextNode(str(self.RegionsClass))
             node2.appendChild(text2)
             node1.appendChild(node2)
             
@@ -135,7 +148,21 @@ class BackgroundDetector(object):
             os.chdir(di)
             zipf.write(base_filename) 
         
-        # Add regions
+        # Add RegionsMap
+        #folder = os.path.basename(filepath_ext)
+        for i, im in enumerate(self.RegionsMap):
+            directory, base_filename = os.path.split(self.Imagelist[i].Imagepath)
+            filename = os.path.splitext(base_filename)[0]
+            filepathImage = directory + '/' + filename + '_RegionsMap.png'
+            #print('path: ', directory, base_filename, filepathImage)
+            cv2.imwrite(filepathImage, im)
+            di, base_filename = os.path.split(filepathImage)
+            os.chdir(di)
+            zipf.write(base_filename) 
+            os.remove(filepathImage)
+            
+            
+        
         zipf.close()
     
     def read_zipdb(self, filepath, StatusLine):
@@ -155,35 +182,54 @@ class BackgroundDetector(object):
         str1=base_filename.split('.')
         
         xmlpath=base_folder + '/'+ xmlname
-        
-        #print('xmlpath: ' + xmlpath)
-        
-        #print(xmlpath)
         dom = parse(xmlpath)
-        #Component.dom = dom
         os.remove(xmlpath)
-        
-        #st=dom.toprettyxml()
-        #print(st)
-        
         
         images=dom.getElementsByTagName('Image')
         for image in images:
-           
+
+            # Read image
             node=image.getElementsByTagName('Imagepath_relative')
             Imagepath_relative=node[0].childNodes[0].nodeValue
-            
-            #print(Imagepath)
             Imagepath = base_folder + '/' + filename + '/' + Imagepath_relative
-            #print('Imagepath: ' + Imagepath)
             Im=Imagedata(Imagepath)
-            
             node=image.getElementsByTagName('Imagename')
             Im.Imagename=node[0].childNodes[0].nodeValue
             
+            # Read RegionsMap
+            node=image.getElementsByTagName('RegionsMap')
+            RegionsMapPath=node[0].childNodes[0].nodeValue
+            Imagepath = base_folder + '/' + filename + '/' + RegionsMapPath
+            print('RegionsMapPath', Imagepath)
+            image=cv2.imread(Imagepath, cv2.IMREAD_ANYDEPTH)
+            self.RegionsMap.append(image) 
+                        
             StatusLine.append('reading image: ' + Im.Imagename)
-            print('reading image: ' + Im.Imagename);
-            
-            
+
             self.Imagelist.append(Im)
             self.Imagename.append(Im.Imagename)
+            
+        self.RegionsList = self.createRegions(self.RegionsMap)
+        
+        #for reg in self.RegionsList:
+        #    ContourImage = self.RegionGrower.drawContours(reg, False)
+        #    self.ContourImagelist.append(ContourImage)
+            
+        # Read RegionsClass
+        
+            
+    def createRegions(self, RegionsMap):
+        RegionsList = []
+        for im in self.RegionsMap:
+            m = np.amax(im)
+            dims = im.shape
+            rlist=[]
+            for i in range(m):
+                reg = np.zeros((dims[0], dims[1], 1), np.uint8)
+                reg[np.where(np.equal(im, i))] = 255
+                rlist.append(reg)           
+            RegionsList.append(rlist)   
+        return RegionsList
+
+
+   
