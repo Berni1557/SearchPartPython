@@ -52,6 +52,10 @@ class BackgroundDetector(object):
         
         for im in self.Imagelist:
             regions, regionsMap = self.RegionGrower.region_growing(im.image)
+            
+            print('regionsMap max', np.amax(regionsMap))
+            print('regions len', len(regions))
+        
             self.RegionsList.append(regions)
             show = False
             ContourImage = self.RegionGrower.drawContours(regions, show)
@@ -101,7 +105,11 @@ class BackgroundDetector(object):
             node1.appendChild(node2)
             
             node2 = dom.createElement("RegionsClass")
-            text2 = dom.createTextNode(str(self.RegionsClass))
+            
+            c_str='';
+            for c in self.RegionsClass[i]:
+                c_str = c_str + str(c.value) + ', '
+            text2 = dom.createTextNode(c_str)
             node2.appendChild(text2)
             node1.appendChild(node2)
             
@@ -160,10 +168,10 @@ class BackgroundDetector(object):
             os.chdir(di)
             zipf.write(base_filename) 
             os.remove(filepathImage)
-            
-            
-        
         zipf.close()
+        
+        print('RegionsMap max', np.amax(self.RegionsMap[0]))
+        print('RegionsClass', len(self.RegionsClass[0]))
     
     def read_zipdb(self, filepath, StatusLine):
         
@@ -201,21 +209,34 @@ class BackgroundDetector(object):
             RegionsMapPath=node[0].childNodes[0].nodeValue
             Imagepath = base_folder + '/' + filename + '/' + RegionsMapPath
             print('RegionsMapPath', Imagepath)
-            image=cv2.imread(Imagepath, cv2.IMREAD_ANYDEPTH)
-            self.RegionsMap.append(image) 
+            imageCV=cv2.imread(Imagepath, cv2.IMREAD_ANYDEPTH)
+            self.RegionsMap.append(imageCV) 
                         
             StatusLine.append('reading image: ' + Im.Imagename)
 
             self.Imagelist.append(Im)
             self.Imagename.append(Im.Imagename)
             
-        self.RegionsList = self.createRegions(self.RegionsMap)
-        
-        #for reg in self.RegionsList:
-        #    ContourImage = self.RegionGrower.drawContours(reg, False)
-        #    self.ContourImagelist.append(ContourImage)
+            # Read RegionsClass
+            node=image.getElementsByTagName('RegionsClass')
+            map_str=node[0].childNodes[0].nodeValue
+            map_list = map_str.split(',')
+            map_list=map_list[:-1]
+            print('map_list', map_list)
+            map_list_img = []
+            for i in map_list:
+                map_list_img.append(BGClass(int(i)))
+            self.RegionsClass.append(map_list_img)
+            print('map_list_img len', len(map_list_img))
             
-        # Read RegionsClass
+            
+        self.RegionsList = self.createRegions(self.RegionsMap)
+        print('RegionsList len', len(self.RegionsList[0]))
+        
+        for reg in self.RegionsList:
+            ContourImage = self.RegionGrower.drawContours(reg, False)
+            self.ContourImagelist.append(ContourImage)
+            
         
             
     def createRegions(self, RegionsMap):

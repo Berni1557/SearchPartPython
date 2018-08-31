@@ -213,12 +213,16 @@ class RegionGrowing(object):
             
         regionsMap = np.zeros((dims[0],dims[1],1), np.uint16)
         
+        
+        print('regions len1', len(regions))
+        
         for i in range(0, len(regions)-1):
-            im = (i+1)*(regions[i]/255)
-            regionsMap = regionsMap + im
+            im = (i+1)*(regions[i] / 255)
+            regionsMap = regionsMap + im.astype(np.uint16)
         
-        regionsMap = regionsMap.astype(np.uint16)
         
+        
+        print('regionsMap max1', np.amax(regionsMap))
         
         biggest = np.amax(regionsMap)
         print('biggest: ', biggest)
