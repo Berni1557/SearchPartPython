@@ -25,7 +25,7 @@ class BackgroundDetector(object):
 
     def __init__(self):
         threshold = 10
-        reg_size_min=100
+        reg_size_min=1000
         show = True
         scale = 0.03
         self.RegionGrower = RegionGrowing(threshold, reg_size_min, show, scale)
@@ -34,42 +34,34 @@ class BackgroundDetector(object):
         
         if self.RegionsDetected[imagenumber]:
             scalereg = self.RegionGrower.m_scale / sc;
-            print('scalereg', scalereg)
             x_image = round(x * scalereg)
             y_image = round(y * scalereg)
-            print('x', x_image)
-            print('y', y_image)
             regions = self.RegionsList[imagenumber]
             for i, reg in enumerate(regions):
                 #print('reg shape: ', reg.shape)
                 if reg[y_image, x_image]==255:
                     self.RegionsClass[imagenumber][i] = classBG
-                    print('Region found: ', x, y, classBG)
         else:
             print('Region growning was not applyed!')
         
     def regionGrowing(self):
-        
-        print('self.RegionsDetected', self.RegionsDetected)
-        
-        for i,im in enumerate(self.Imagelist):
-            regions, regionsMap = self.RegionGrower.region_growing(im.image)
-            
-            print('regionsMap max', np.amax(regionsMap))
-            print('regions len', len(regions))
-        
-            self.RegionsList.append(regions)
-            show = False
-            ContourImage = self.RegionGrower.drawContours(regions, show)
-            self.ContourImagelist.append(ContourImage)
-            self.RegionsMap.append(regionsMap)
-            
-            classlist = []
-            for j in range(len(regions)):
-                classlist.append(BGClass.UNKNOWN)
                 
-            self.RegionsClass.append(classlist)
-            self.RegionsDetected[i] = True
+        for i,im in enumerate(self.Imagelist):
+            if self.RegionsDetected[i] == False:
+                regions, regionsMap = self.RegionGrower.region_growing(im.image)
+           
+                self.RegionsList.append(regions)
+                show = False
+                ContourImage = self.RegionGrower.drawContours(regions, show)
+                self.ContourImagelist.append(ContourImage)
+                self.RegionsMap.append(regionsMap)
+                
+                classlist = []
+                for j in range(len(regions)):
+                    classlist.append(BGClass.UNKNOWN)
+                    
+                self.RegionsClass.append(classlist)
+                self.RegionsDetected[i] = True
             
     def getRegion(self, index, x, y):
         k = 0

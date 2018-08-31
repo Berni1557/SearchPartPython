@@ -195,7 +195,6 @@ class RegionGrowing(object):
             pos = randint(0, len(Index[0])-1)
             #seed = (Index[1][pos], Index[0][pos])
             seed = (Index[0][pos], Index[1][pos])
-            print('seed: ', seed)
             
             # Do region growing
             reg, mask = self.simple_region_growing(image, seed, self.m_threshold, mask)

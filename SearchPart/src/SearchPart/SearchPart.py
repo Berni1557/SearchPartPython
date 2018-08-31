@@ -41,7 +41,7 @@ class SearchPartGUI(QMainWindow):
     pixmap = None
     pixmapBG = None
     backgroundDetector = BackgroundDetector()
-    showContours = True
+    showContoursClass = True
     
     def __init__(self):
         
@@ -121,7 +121,8 @@ class SearchPartGUI(QMainWindow):
     
     @pyqtSlot()
     def on_ShowContours(self):
-        self.showContour = self.ShowContours.isChecked()
+        self.showContoursClass = self.ShowContours.isChecked()
+        self.drawBG()
         
     @pyqtSlot()
     def on_button_RegionGrowing(self):
@@ -162,23 +163,26 @@ class SearchPartGUI(QMainWindow):
     def on_LoadBackgroundImages(self):
         names = QFileDialog.getOpenFileNames(self,  'Open file','H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/images/',"Images (*.png *.tiff *.jpg)")
         filenames = names[0];
-        print('filenames: ' + str(filenames))
-        k=0
-        for f in filenames:
-            k=k+1
-            #print('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
-            self.StatusLine.append('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
-            Imname=os.path.basename(f)
-            Im=SPM.Imagedata(f)
-            if not Im.scale_factor==False:
-                self.backgroundDetector.Imagelist.append(Im)
-                self.backgroundDetector.RegionsDetected.append(False)            
-        time.sleep(0.2)
-        self.counterBG = SPM.imagecounter(0, len(self.backgroundDetector.Imagelist)-1)
-        self.update_backgrounddata()
-        self.drawBG()
         
-        self.StatusLine.append("Added image " + Imname)
+        if len(filenames)>0:
+            k=0
+            for f in filenames:
+                k=k+1
+                #print('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
+                self.StatusLine.append('Loading: ' + f + '; Image ' + str(k) + '/' + str(len(filenames)))
+                Imname=os.path.basename(f)
+                Im=SPM.Imagedata(f)
+                if not Im.scale_factor==False:
+                    self.backgroundDetector.Imagelist.append(Im)
+                    self.backgroundDetector.RegionsDetected.append(False)            
+            time.sleep(0.2)
+            self.counterBG = SPM.imagecounter(0, len(self.backgroundDetector.Imagelist)-1)
+            self.update_backgrounddata()
+            self.drawBG()
+            
+            self.StatusLine.append("Added image " + Imname)
+        else:
+            self.StatusLine.append("No image selected.")
         
     def getPosition(self , event):
         x = event.pos().x()
@@ -423,7 +427,7 @@ class SearchPartGUI(QMainWindow):
             self.counterBG.imagenumber=self.counterBG.imagenumber_max
         self.ImageNumberBG.setText(self.counterBG.tostring()) 
         
-        self.ShowContours.setChecked(self.showContours)
+        self.ShowContours.setChecked(self.showContoursClass)
         
         self.drawBG()
 
@@ -435,34 +439,33 @@ class SearchPartGUI(QMainWindow):
             self.scaleVisualizationFactorBG[1] = self.scaleVisualizationBG[1] / imagecv.shape[0]
             imagecv = cv2.resize(imagecv, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1])) 
             
-            if self.showContour and len(self.backgroundDetector.ContourImagelist)==len(self.backgroundDetector.Imagelist):
-                
-                regions = self.backgroundDetector.RegionsList[self.counterBG.imagenumber]
-                
-                ## Show contours
-                image_cont = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
-                for im in regions:
-                    im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
-                    _, contours, hierarchy = cv2.findContours(im_res.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)                  
-                    cv2.drawContours(image_cont, contours, -1, [255,255,255], 1); 
-                imagecv[np.where((image_cont==[255,255,255]).all(axis=2))] = [255,255,255]
-                
-                # Draw classes
-                for i, im in enumerate(regions):
-                    if self.backgroundDetector.RegionsClass[self.counterBG.imagenumber][i]==BGClass.BACKGROUND:
+            if self.showContoursClass:
+                if (len(self.backgroundDetector.RegionsList) > self.counterBG.imagenumber and self.backgroundDetector.RegionsDetected[self.counterBG.imagenumber]):
+                    regions = self.backgroundDetector.RegionsList[self.counterBG.imagenumber]                
+                    ## Show contours
+                    image_cont = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
+                    for i, im in enumerate(regions):
                         im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
-                        mask = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
-                        mask[:,:,0]=im_res
-                        mask[:,:,1]=im_res
-                        mask[:,:,2]=im_res
-                        imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [255,0,0]
-                    if self.backgroundDetector.RegionsClass[self.counterBG.imagenumber][i]==BGClass.PART:
-                        im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
-                        mask = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
-                        mask[:,:,0]=im_res
-                        mask[:,:,1]=im_res
-                        mask[:,:,2]=im_res
-                        imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [0,0,250]    
+                        _, contours, hierarchy = cv2.findContours(im_res.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)                  
+                        cv2.drawContours(image_cont, contours, -1, [255,255,255], 1); 
+                    imagecv[np.where((image_cont==[255,255,255]).all(axis=2))] = [255,255,255]
+                
+                    # Draw classes
+                    for i, im in enumerate(regions):                 
+                        if self.backgroundDetector.RegionsClass[self.counterBG.imagenumber][i]==BGClass.BACKGROUND:
+                            im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
+                            mask = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
+                            mask[:,:,0]=im_res
+                            mask[:,:,1]=im_res
+                            mask[:,:,2]=im_res
+                            imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [255,0,0]
+                        if self.backgroundDetector.RegionsClass[self.counterBG.imagenumber][i]==BGClass.PART:
+                            im_res = cv2.resize(im, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1]))
+                            mask = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)
+                            mask[:,:,0]=im_res
+                            mask[:,:,1]=im_res
+                            mask[:,:,2]=im_res
+                            imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [0,0,250]    
                 
             image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888)
             self.pixmapBG = QtGui.QPixmap(image)
