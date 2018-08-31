@@ -171,7 +171,8 @@ class SearchPartGUI(QMainWindow):
             Imname=os.path.basename(f)
             Im=SPM.Imagedata(f)
             if not Im.scale_factor==False:
-                self.backgroundDetector.Imagelist.append(Im)                        
+                self.backgroundDetector.Imagelist.append(Im)
+                self.backgroundDetector.RegionsDetected.append(False)            
         time.sleep(0.2)
         self.counterBG = SPM.imagecounter(0, len(self.backgroundDetector.Imagelist)-1)
         self.update_backgrounddata()

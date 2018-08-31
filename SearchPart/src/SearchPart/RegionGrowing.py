@@ -158,7 +158,7 @@ class RegionGrowing(object):
         reg_size = self.m_reg_size_min        
         dims = image.shape
         mask = np.zeros((dims[0],dims[1],1), np.uint8)
-        mask_seed = np.zeros((dims[0],dims[1],1), np.uint8)
+        #mask_seed = np.zeros((dims[0],dims[1],1), np.uint8)
         
         print('dims: ', dims)
         
@@ -189,7 +189,9 @@ class RegionGrowing(object):
             cv2.drawContours(mask_seed, contours_draw, 0, 255, cv2.FILLED);        
             
             # Extract random seed
-            Index = np.where(np.equal(mask_seed, 255))
+            IndexSeed = np.where(np.equal(mask_seed, 255))
+            Index = np.where(np.equal(mask, 0))
+            
             pos = randint(0, len(Index[0])-1)
             #seed = (Index[1][pos], Index[0][pos])
             seed = (Index[0][pos], Index[1][pos])
@@ -199,7 +201,8 @@ class RegionGrowing(object):
             reg, mask = self.simple_region_growing(image, seed, self.m_threshold, mask)
             
             # Update reg_size
-            reg_size = len(Index[0])       
+            #reg_size = len(Index[0])
+            reg_size = len(IndexSeed[0])
             
             if self.m_show:
                 cv2.imshow('mask', mask)
@@ -216,7 +219,7 @@ class RegionGrowing(object):
         
         print('regions len1', len(regions))
         
-        for i in range(0, len(regions)-1):
+        for i in range(1, len(regions)):
             im = (i+1)*(regions[i] / 255)
             regionsMap = regionsMap + im.astype(np.uint16)
         

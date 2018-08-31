@@ -21,7 +21,7 @@ class BackgroundDetector(object):
     RegionsClass = []   # 0-unknown, 1-background, 2-part
     ContourImagelist = []
     RegionGrower = None
-    Detected = False
+    RegionsDetected = []
 
     def __init__(self):
         threshold = 10
@@ -32,7 +32,7 @@ class BackgroundDetector(object):
 
     def setBGClass(self, x, y, imagenumber, classBG, sc):
         
-        if self.Detected:
+        if self.RegionsDetected[imagenumber]:
             scalereg = self.RegionGrower.m_scale / sc;
             print('scalereg', scalereg)
             x_image = round(x * scalereg)
@@ -50,7 +50,9 @@ class BackgroundDetector(object):
         
     def regionGrowing(self):
         
-        for im in self.Imagelist:
+        print('self.RegionsDetected', self.RegionsDetected)
+        
+        for i,im in enumerate(self.Imagelist):
             regions, regionsMap = self.RegionGrower.region_growing(im.image)
             
             print('regionsMap max', np.amax(regionsMap))
@@ -63,11 +65,11 @@ class BackgroundDetector(object):
             self.RegionsMap.append(regionsMap)
             
             classlist = []
-            for i in range(len(regions)):
+            for j in range(len(regions)):
                 classlist.append(BGClass.UNKNOWN)
                 
             self.RegionsClass.append(classlist)
-        self.Detected = True
+            self.RegionsDetected[i] = True
             
     def getRegion(self, index, x, y):
         k = 0
@@ -104,12 +106,18 @@ class BackgroundDetector(object):
             node2.appendChild(text2)
             node1.appendChild(node2)
             
-            node2 = dom.createElement("RegionsClass")
-            
+            # Write RegionsClass
+            node2 = dom.createElement("RegionsClass")          
             c_str='';
             for c in self.RegionsClass[i]:
                 c_str = c_str + str(c.value) + ', '
             text2 = dom.createTextNode(c_str)
+            node2.appendChild(text2)
+            node1.appendChild(node2)
+            
+            # Write RegionsDetected
+            node2 = dom.createElement("RegionsDetected")
+            text2 = dom.createTextNode(str(self.RegionsDetected[i]))
             node2.appendChild(text2)
             node1.appendChild(node2)
             
@@ -125,7 +133,6 @@ class BackgroundDetector(object):
     def write_zipdb(self, filepath_ext):
         
         filepath, file_extension = os.path.splitext(filepath_ext)    
-        print('filepath: ' + filepath)
         
         # Create  dom
         dom = self.create_dom()
@@ -157,7 +164,6 @@ class BackgroundDetector(object):
             zipf.write(base_filename) 
         
         # Add RegionsMap
-        #folder = os.path.basename(filepath_ext)
         for i, im in enumerate(self.RegionsMap):
             directory, base_filename = os.path.split(self.Imagelist[i].Imagepath)
             filename = os.path.splitext(base_filename)[0]
@@ -169,9 +175,6 @@ class BackgroundDetector(object):
             zipf.write(base_filename) 
             os.remove(filepathImage)
         zipf.close()
-        
-        print('RegionsMap max', np.amax(self.RegionsMap[0]))
-        print('RegionsClass', len(self.RegionsClass[0]))
     
     def read_zipdb(self, filepath, StatusLine):
         
@@ -194,7 +197,7 @@ class BackgroundDetector(object):
         os.remove(xmlpath)
         
         images=dom.getElementsByTagName('Image')
-        for image in images:
+        for i, image in enumerate(images):
 
             # Read image
             node=image.getElementsByTagName('Imagepath_relative')
@@ -208,7 +211,6 @@ class BackgroundDetector(object):
             node=image.getElementsByTagName('RegionsMap')
             RegionsMapPath=node[0].childNodes[0].nodeValue
             Imagepath = base_folder + '/' + filename + '/' + RegionsMapPath
-            print('RegionsMapPath', Imagepath)
             imageCV=cv2.imread(Imagepath, cv2.IMREAD_ANYDEPTH)
             self.RegionsMap.append(imageCV) 
                         
@@ -216,22 +218,24 @@ class BackgroundDetector(object):
 
             self.Imagelist.append(Im)
             self.Imagename.append(Im.Imagename)
+
             
             # Read RegionsClass
             node=image.getElementsByTagName('RegionsClass')
             map_str=node[0].childNodes[0].nodeValue
             map_list = map_str.split(',')
             map_list=map_list[:-1]
-            print('map_list', map_list)
             map_list_img = []
-            for i in map_list:
-                map_list_img.append(BGClass(int(i)))
+            for j in map_list:
+                map_list_img.append(BGClass(int(j)))
             self.RegionsClass.append(map_list_img)
-            print('map_list_img len', len(map_list_img))
             
+            # Read RegionsClass
+            node=image.getElementsByTagName('RegionsDetected')
+            self.RegionsDetected.append(bool(node[0].childNodes[0].nodeValue))          
             
         self.RegionsList = self.createRegions(self.RegionsMap)
-        print('RegionsList len', len(self.RegionsList[0]))
+       
         
         for reg in self.RegionsList:
             ContourImage = self.RegionGrower.drawContours(reg, False)
@@ -245,7 +249,7 @@ class BackgroundDetector(object):
             m = np.amax(im)
             dims = im.shape
             rlist=[]
-            for i in range(m):
+            for i in range(1, m+1):
                 reg = np.zeros((dims[0], dims[1], 1), np.uint8)
                 reg[np.where(np.equal(im, i))] = 255
                 rlist.append(reg)           
