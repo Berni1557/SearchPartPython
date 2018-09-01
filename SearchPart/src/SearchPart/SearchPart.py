@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsObject, QStyleOptionGraphicsItem
 from PyQt5.QtCore import Qt, QTimer, QRectF
 
 from PyQt5.QtCore import pyqtSignal, Qt, QDir, QFile, QFileInfo, QPoint, QTextStream, QTimer, QUrl, QRect
-
+import timeit
 
     
 class SearchPartGUI(QMainWindow):
@@ -44,9 +44,6 @@ class SearchPartGUI(QMainWindow):
     showContoursClass = True
     
     def __init__(self):
-        
-        
-        
         # Init GUI      
         super(SearchPartGUI,self).__init__()
         loadUi('../qt/SearchPartGUI_V17.ui',self)
@@ -90,9 +87,6 @@ class SearchPartGUI(QMainWindow):
         self.ComponentMean.clicked.connect(self.on_ComponentMean)
         self.AddImage.clicked.connect(self.on_AddImage)
         self.DeleteImage.clicked.connect(self.on_DeleteImage)
-        
-        
-        
         self.ImageNumber.setText(self.counter.tostring())
         self.ImageScale.setText(self.scale())
         
@@ -155,7 +149,9 @@ class SearchPartGUI(QMainWindow):
         #self.ComponentDatasetPath.setText(filepath)
         #self.component = SPM.read_zipdb(self.component, filepath, self.StatusLine)
         self.backgroundDetector.read_zipdb(filepath, self.StatusLine)
+        
         self.update_backgrounddata();
+        self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
         self.drawBG()
         self.StatusLine.append("Loading background model finished")
         
@@ -190,12 +186,18 @@ class SearchPartGUI(QMainWindow):
         self.appendBBox(x, y)
         
     def getPositionBG(self , event):
+        
+        start = timeit.default_timer()
+
         x = event.pos().x()
         y = event.pos().y()
         idx = self.LabelBG.currentIndex()
         sc = self.scaleVisualizationFactorBG[0]
         self.backgroundDetector.setBGClass(x, y, self.counterBG.imagenumber, BGClass(idx), sc)
         self.drawBG()
+        
+        stop = timeit.default_timer()
+        print('Time: ', stop - start)  
 
         
     def scale(self):
@@ -264,15 +266,21 @@ class SearchPartGUI(QMainWindow):
         
     @pyqtSlot()
     def on_button_BackBG(self):
+        self.backgroundDetector.RegionsList[self.counterBG.imagenumber]=None
         if(self.counterBG.imagenumber>0):
-            self.counterBG.imagenumber=self.counterBG.imagenumber-1;
+            self.counterBG.imagenumber=self.counterBG.imagenumber-1
+        self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
         self.update_backgrounddata()
         self.drawBG()
         
     @pyqtSlot()
     def on_button_NextBG(self):
+        self.backgroundDetector.RegionsList[self.counterBG.imagenumber]=None
         if(self.counterBG.imagenumber<self.counterBG.imagenumber_max):
             self.counterBG.imagenumber=self.counterBG.imagenumber+1;
+            
+        self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
+        
         self.update_backgrounddata()
         self.drawBG()
         
@@ -440,7 +448,7 @@ class SearchPartGUI(QMainWindow):
             imagecv = cv2.resize(imagecv, (self.scaleVisualizationBG[0], self.scaleVisualizationBG[1])) 
             
             if self.showContoursClass:
-                if (len(self.backgroundDetector.RegionsList) > self.counterBG.imagenumber and self.backgroundDetector.RegionsDetected[self.counterBG.imagenumber]):
+                if (len(self.backgroundDetector.RegionsList) > self.counterBG.imagenumber and (self.backgroundDetector.RegionsList[self.counterBG.imagenumber] is not None) and self.backgroundDetector.RegionsDetected[self.counterBG.imagenumber]):
                     regions = self.backgroundDetector.RegionsList[self.counterBG.imagenumber]                
                     ## Show contours
                     image_cont = np.zeros((self.scaleVisualizationBG[1], self.scaleVisualizationBG[0], 3), np.uint8)

@@ -1,0 +1,205 @@
+# TrainModel.py
+from __future__ import print_function, division, absolute_import, unicode_literals
+
+import cv2
+import numpy as np
+from enum import Enum
+from BackgroundDetector import BackgroundDetector, BGClass
+
+import numpy as np
+#from tf_unet.image_util import BaseDataProvider
+from unet.image_util import BaseDataProvider
+
+import cv2
+import scipy.misc
+from scipy.misc import imresize
+import math
+
+from random import randint
+
+from TrainModel import DLModel
+
+
+class BGDataCreatorMethod(Enum): 
+    RANDOMSELECTION = 0
+
+    
+class BGDataGenerator(object): 
+    name = 'CNN'     
+    BGD = BackgroundDetector()
+    method = BGDataCreatorMethod.RANDOMSELECTION
+    data_train = ([],[])
+    data_test = ([],[])
+    data_valid = ([],[])
+
+    def __init__(self, name):
+        self.name = name
+        
+    def loadBGModel(self, filepath):
+        self.BGD.read_zipdb(filepath)
+        
+    def createData(self, N_train, N_test, N_valid, nx, ny, nimg=0):
+        
+        print('createData')
+        if self.method == BGDataCreatorMethod.RANDOMSELECTION:
+            
+            Images=[]
+            # Get images ans create image masks
+            for i in range(nimg):
+                im = self.BGD.Imagelist[i]
+                Images.append(im.image)
+                self.BGD.RegionsList[i] = self.BGD.createRegions(self.BGD.RegionsMap, i)
+            
+            dims_img = Images[0].shape
+            
+            print('shape:', len(self.BGD.RegionsList))
+            
+            # Create masks       
+            maskList=[]           
+            for i in range(nimg):
+                print('i:', i)
+                regions = self.BGD.RegionsList[i]
+                dims = Images[i].shape
+                mask = np.zeros((dims[0], dims[1]), np.uint16)
+                for j, reg in enumerate(regions):                   
+                    if self.BGD.RegionsClass[i][j]==BGClass.BACKGROUND:
+                        print('j:', j)
+                        print('reg shape:', reg.shape)
+                        image_reg = reg
+                        image_reg_res = cv2.resize(image_reg, dsize=(dims[1], dims[0]))
+                        
+                        print('image_reg_res shape:', image_reg_res.shape)
+                        
+                        th, image_reg_thr = cv2.threshold(image_reg_res, 127, 255, cv2.THRESH_BINARY)
+                        
+                        
+                        
+                        #print('image_reg_thr shape:', image_reg_thr.shape)
+                        #print('mask shape:', mask.shape)
+                        
+                        #cv2.namedWindow( "image_reg_thr", cv2.WINDOW_NORMAL )
+                        #cv2.imshow('image_reg_thr', image_reg_thr*255)
+                        #cv2.waitKey(0)
+                        
+                        image_reg_thr = image_reg_thr.astype(np.uint16)
+                        
+                        mask = mask + image_reg_thr
+                thr, mask_thr = cv2.threshold(mask, 150, 1, cv2.THRESH_BINARY)
+                maskList.append(mask_thr)
+
+            # Create random crops    
+            # Select random midpoint
+            nx2 = math.ceil(nx/2.0)
+            ny2 = math.ceil(ny/2.0)
+            bx1 = nx2 + 1
+            bx2 = dims_img[0] - nx2 - 1
+            by1 = ny2 + 1
+            by2 = dims_img[1] - ny2 - 1
+
+            # Create train data
+            for i in range(N_train):
+                n = randint(0, nimg-1)
+                x = randint(bx1, bx2)
+                y = randint(by1, by2)
+                im = Images[n]
+                crop_img = im[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                self.data_train[0].append(crop_img)                
+                mask = maskList[n]
+                crop_mask = mask[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                self.data_train[1].append(crop_mask)
+                
+                
+#                cv2.namedWindow( "crop_img", cv2.WINDOW_NORMAL )               
+#                cv2.imshow('crop_img', crop_img)
+#                
+#                cv2.namedWindow( "mask", cv2.WINDOW_NORMAL )               
+#                crop_mask = crop_mask.astype(np.uint8)
+#                cv2.imshow('mask', crop_mask*255)
+#                cv2.waitKey(0)
+#                cv2.destroyAllWindows()
+
+            
+            # Create test data
+            for i in range(N_test):
+                n = randint(0, nimg-1)
+                x = randint(bx1, bx2)
+                y = randint(by1, by2)
+                im = Images[n]
+                crop_img = im[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                self.data_test[0].append(crop_img)
+                
+                mask = maskList[n]
+                crop_mask = mask[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                self.data_test[1].append(crop_mask)
+                
+            # Create valid data
+            for i in range(N_valid):
+                n = randint(0, nimg-1)
+                x = randint(bx1, bx2)
+                y = randint(by1, by2)
+                im = Images[n]
+                crop_img = im[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                self.data_valid[0].append(crop_img)
+                
+                mask = maskList[n]
+                crop_mask = mask[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                self.data_valid[1].append(crop_mask)
+            
+
+class BGDataProvider(BaseDataProvider):
+    channels = 3
+    n_class = 2
+    BGDataGen = BGDataGenerator('BGDataGenerator')
+    
+    NumSample = 0
+    
+    def __init__(self, nx, ny, **kwargs):
+        super(BGDataProvider, self).__init__()
+        self.nx = nx
+        self.ny = ny
+        self.kwargs = kwargs
+        rect = kwargs.get("rectangles", False)
+        if rect:
+            self.n_class=3
+
+        
+    def _next_data(self):
+        data, label = self.create_image_and_label(self.nx, self.ny, **self.kwargs)
+        return data, label
+
+    def create_image_and_label(self, nx,ny, cnt = 10, r_min = 5, r_max = 50, border = 92, sigma = 20, rectangles=False):    
+        image = self.BGDataGen.data_train[0][self.NumSample]
+        label = self.BGDataGen.data_train[1][self.NumSample]
+        self.NumSample = self.NumSample + 1    
+        return image, label
+
+
+def to_rgb(img):
+    img = img.reshape(img.shape[0], img.shape[1])
+    img[np.isnan(img)] = 0
+    img -= np.amin(img)
+    img /= np.amax(img)
+    blue = np.clip(4*(0.75-img), 0, 1)
+    red  = np.clip(4*(img-0.25), 0, 1)
+    green= np.clip(44*np.fabs(img-0.5)-1., 0, 1)
+    rgb = np.stack((red, green, blue), axis=2)
+    return rgb
+     
+if __name__ == '__main__':
+    
+    BGGenerator = BGDataGenerator('BGDataGenerator01')
+    BGGenerator.loadBGModel('H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/background/BG6.zip')
+    N_train = 3
+    N_test = 3
+    N_valid = 3
+    nx = 572 
+    ny = 572 
+    nimg = 2
+    BGGenerator.createData(N_train, N_test, N_valid, nx, ny, nimg)
+    
+    model = DLModel()
+    nx = 572
+    ny = 572
+    model.init(nx, ny)
+    model.train()
+    model.test()

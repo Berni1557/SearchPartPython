@@ -27,7 +27,7 @@ class BackgroundDetector(object):
         threshold = 10
         reg_size_min=1000
         show = True
-        scale = 0.03
+        scale = 0.1
         self.RegionGrower = RegionGrowing(threshold, reg_size_min, show, scale)
 
     def setBGClass(self, x, y, imagenumber, classBG, sc):
@@ -168,7 +168,7 @@ class BackgroundDetector(object):
             os.remove(filepathImage)
         zipf.close()
     
-    def read_zipdb(self, filepath, StatusLine):
+    def read_zipdb(self, filepath, StatusLine=None):
         
         #print('filepath1: ' + filepath)
         
@@ -205,8 +205,9 @@ class BackgroundDetector(object):
             Imagepath = base_folder + '/' + filename + '/' + RegionsMapPath
             imageCV=cv2.imread(Imagepath, cv2.IMREAD_ANYDEPTH)
             self.RegionsMap.append(imageCV) 
-                        
-            StatusLine.append('reading image: ' + Im.Imagename)
+            
+            if StatusLine is not None:
+                StatusLine.append('reading image: ' + Im.Imagename)
 
             self.Imagelist.append(Im)
             self.Imagename.append(Im.Imagename)
@@ -226,27 +227,41 @@ class BackgroundDetector(object):
             node=image.getElementsByTagName('RegionsDetected')
             self.RegionsDetected.append(bool(node[0].childNodes[0].nodeValue))          
             
-        self.RegionsList = self.createRegions(self.RegionsMap)
-       
+        #self.RegionsList = self.createRegions(self.RegionsMap)
+        self.RegionsList = [None] * len(images)
         
         for reg in self.RegionsList:
-            ContourImage = self.RegionGrower.drawContours(reg, False)
-            self.ContourImagelist.append(ContourImage)
+            if reg is not None:
+                ContourImage = self.RegionGrower.drawContours(reg, False)
+                self.ContourImagelist.append(ContourImage)
             
         
             
-    def createRegions(self, RegionsMap):
-        RegionsList = []
-        for im in self.RegionsMap:
+    def createRegions(self, RegionsMap, imagenumber=-1):
+        #RegionsList = []
+        if imagenumber == -1:
+            RegionsList = []
+            for im in self.RegionsMap:
+                m = np.amax(im)
+                dims = im.shape
+                rlist=[]
+                for i in range(1, m+1):
+                    reg = np.zeros((dims[0], dims[1], 1), np.uint8)
+                    reg[np.where(np.equal(im, i))] = 255
+                    rlist.append(reg)           
+                RegionsList.append(rlist)
+            return RegionsList
+        else:
+            print('Create regions')
+            im = self.RegionsMap[imagenumber]
             m = np.amax(im)
             dims = im.shape
-            rlist=[]
+            rlist = []
             for i in range(1, m+1):
                 reg = np.zeros((dims[0], dims[1], 1), np.uint8)
                 reg[np.where(np.equal(im, i))] = 255
                 rlist.append(reg)           
-            RegionsList.append(rlist)   
-        return RegionsList
+            return rlist
 
 
    
