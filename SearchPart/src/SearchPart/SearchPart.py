@@ -151,7 +151,9 @@ class SearchPartGUI(QMainWindow):
         self.backgroundDetector.read_zipdb(filepath, self.StatusLine)
         
         self.update_backgrounddata();
-        self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
+        if self.backgroundDetector.RegionsDetected[self.counterBG.imagenumber] == True:
+            print('test1')
+            self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
         self.drawBG()
         self.StatusLine.append("Loading background model finished")
         
@@ -170,7 +172,10 @@ class SearchPartGUI(QMainWindow):
                 Im=SPM.Imagedata(f)
                 if not Im.scale_factor==False:
                     self.backgroundDetector.Imagelist.append(Im)
-                    self.backgroundDetector.RegionsDetected.append(False)            
+                    self.backgroundDetector.RegionsDetected.append(False)
+                    self.backgroundDetector.RegionsClass.append([])
+                    self.backgroundDetector.RegionsList.append([])
+                    self.backgroundDetector.RegionsMap.append(None)
             time.sleep(0.2)
             self.counterBG = SPM.imagecounter(0, len(self.backgroundDetector.Imagelist)-1)
             self.update_backgrounddata()
@@ -269,7 +274,8 @@ class SearchPartGUI(QMainWindow):
         self.backgroundDetector.RegionsList[self.counterBG.imagenumber]=None
         if(self.counterBG.imagenumber>0):
             self.counterBG.imagenumber=self.counterBG.imagenumber-1
-        self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
+        if self.backgroundDetector.RegionsDetected[self.counterBG.imagenumber] == True:
+            self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
         self.update_backgrounddata()
         self.drawBG()
         
@@ -278,8 +284,8 @@ class SearchPartGUI(QMainWindow):
         self.backgroundDetector.RegionsList[self.counterBG.imagenumber]=None
         if(self.counterBG.imagenumber<self.counterBG.imagenumber_max):
             self.counterBG.imagenumber=self.counterBG.imagenumber+1;
-            
-        self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
+        if self.backgroundDetector.RegionsDetected[self.counterBG.imagenumber] == True:
+            self.backgroundDetector.RegionsList[self.counterBG.imagenumber] = self.backgroundDetector.createRegions(self.backgroundDetector.RegionsMap, self.counterBG.imagenumber)
         
         self.update_backgrounddata()
         self.drawBG()
@@ -474,8 +480,8 @@ class SearchPartGUI(QMainWindow):
                             mask[:,:,1]=im_res
                             mask[:,:,2]=im_res
                             imagecv[np.where((mask==[255,255,255]).all(axis=2))] = [0,0,250]    
-                
-            image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888)
+                                   
+            image = QtGui.QImage(imagecv.data, imagecv.shape[1], imagecv.shape[0], imagecv.strides[0], QtGui.QImage.Format_RGB888).rgbSwapped()
             self.pixmapBG = QtGui.QPixmap(image)
             self.ImageBG.setPixmap(self.pixmapBG)
 

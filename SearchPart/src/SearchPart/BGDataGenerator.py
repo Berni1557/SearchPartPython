@@ -17,7 +17,7 @@ import math
 
 from random import randint
 
-from TrainModel import DLModel
+#from TrainModel import DLModel
 
 
 class BGDataCreatorMethod(Enum): 
@@ -102,10 +102,10 @@ class BGDataGenerator(object):
                 x = randint(bx1, bx2)
                 y = randint(by1, by2)
                 im = Images[n]
-                crop_img = im[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                crop_img = im[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_train[0].append(crop_img)                
                 mask = maskList[n]
-                crop_mask = mask[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                crop_mask = mask[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_train[1].append(crop_mask)
                 
                 
@@ -125,11 +125,11 @@ class BGDataGenerator(object):
                 x = randint(bx1, bx2)
                 y = randint(by1, by2)
                 im = Images[n]
-                crop_img = im[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                crop_img = im[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_test[0].append(crop_img)
                 
                 mask = maskList[n]
-                crop_mask = mask[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                crop_mask = mask[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_test[1].append(crop_mask)
                 
             # Create valid data
@@ -138,11 +138,11 @@ class BGDataGenerator(object):
                 x = randint(bx1, bx2)
                 y = randint(by1, by2)
                 im = Images[n]
-                crop_img = im[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                crop_img = im[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_valid[0].append(crop_img)
                 
                 mask = maskList[n]
-                crop_mask = mask[x-nx2:x+nx2-1, y-ny2:y+ny2]
+                crop_mask = mask[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_valid[1].append(crop_mask)
             
 
@@ -162,15 +162,34 @@ class BGDataProvider(BaseDataProvider):
         if rect:
             self.n_class=3
 
-        
     def _next_data(self):
         data, label = self.create_image_and_label(self.nx, self.ny, **self.kwargs)
         return data, label
 
-    def create_image_and_label(self, nx,ny, cnt = 10, r_min = 5, r_max = 50, border = 92, sigma = 20, rectangles=False):    
-        image = self.BGDataGen.data_train[0][self.NumSample]
-        label = self.BGDataGen.data_train[1][self.NumSample]
-        self.NumSample = self.NumSample + 1    
+    def create_image_and_label(self, nx,ny, cnt = 10, r_min = 5, r_max = 50, border = 92, sigma = 20, rectangles=False):
+        
+        dataset = 'train'
+        if dataset == 'train':
+            image = self.BGDataGen.data_train[0][self.NumSample]
+            label = self.BGDataGen.data_train[1][self.NumSample]
+            self.NumSample = self.NumSample + 1    
+            label = label.astype(bool)
+            
+        if dataset == 'test':
+            image = self.BGDataGen.data_test[0][self.NumSample]
+            label = self.BGDataGen.data_test[1][self.NumSample]
+            self.NumSample = self.NumSample + 1    
+            label = label.astype(bool)
+            
+        if dataset == 'valid':
+            image = self.BGDataGen.data_valid[0][self.NumSample]
+            label = self.BGDataGen.data_valid[1][self.NumSample]
+            self.NumSample = self.NumSample + 1    
+            label = label.astype(bool)
+        
+        #print('label5 shape', label.shape)
+        #print('label5 shape', label.shape)
+        
         return image, label
 
 

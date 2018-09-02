@@ -7,6 +7,10 @@ from SearchPartModules import Imagedata
 import numpy as np
 from enum import Enum
 import cv2
+import timeit
+
+def str2bool(v):
+  return v in ("True")
                
 class BGClass(Enum): 
     UNKNOWN = 0
@@ -25,26 +29,36 @@ class BackgroundDetector(object):
 
     def __init__(self):
         threshold = 10
-        reg_size_min=1000
+        reg_size_min=3000
         show = True
         scale = 0.1
         self.RegionGrower = RegionGrowing(threshold, reg_size_min, show, scale)
 
     def setBGClass(self, x, y, imagenumber, classBG, sc):
         
+        
+        start = timeit.timeit()
+        
         if self.RegionsDetected[imagenumber]:
             scalereg = self.RegionGrower.m_scale / sc;
             x_image = round(x * scalereg)
             y_image = round(y * scalereg)
             regions = self.RegionsList[imagenumber]
+            
+            print('N: ', len(regions))
+            
             for i, reg in enumerate(regions):
                 #print('reg shape: ', reg.shape)
                 if reg[y_image, x_image]==255:
                     self.RegionsClass[imagenumber][i] = classBG
         else:
             print('Region growning was not applyed!')
+            
+        print('t1:', timeit.timeit() - start)
         
     def regionGrowing(self):
+        
+        print('classlist len1', len(self.RegionsClass))
                 
         for i,im in enumerate(self.Imagelist):
             if self.RegionsDetected[i] == False:
@@ -54,14 +68,22 @@ class BackgroundDetector(object):
                 show = False
                 ContourImage = self.RegionGrower.drawContours(regions, show)
                 self.ContourImagelist.append(ContourImage)
-                self.RegionsMap.append(regionsMap)
+               
                 
                 classlist = []
                 for j in range(len(regions)):
                     classlist.append(BGClass.UNKNOWN)
                     
-                self.RegionsClass.append(classlist)
+                self.RegionsMap[i] = regionsMap
+                self.RegionsClass[i] = classlist
                 self.RegionsDetected[i] = True
+                
+                #print('classlist', self.RegionsClass)
+                print('classlist len', len(self.RegionsMap))
+
+            folder = os.path.dirname(os.path.abspath(__file__))
+            filepath = folder + '\BGTemp.zip'
+            self.write_zipdb(filepath)
             
     def getRegion(self, index, x, y):
         k = 0
@@ -155,17 +177,21 @@ class BackgroundDetector(object):
             os.chdir(di)
             zipf.write(base_filename) 
         
+        print('RegionsDetected', len(self.RegionsDetected))
+        print('RegionsMap', len(self.RegionsMap))
+        
         # Add RegionsMap
         for i, im in enumerate(self.RegionsMap):
-            directory, base_filename = os.path.split(self.Imagelist[i].Imagepath)
-            filename = os.path.splitext(base_filename)[0]
-            filepathImage = directory + '/' + filename + '_RegionsMap.png'
-            #print('path: ', directory, base_filename, filepathImage)
-            cv2.imwrite(filepathImage, im)
-            di, base_filename = os.path.split(filepathImage)
-            os.chdir(di)
-            zipf.write(base_filename) 
-            os.remove(filepathImage)
+            if self.RegionsDetected[i] == True:
+                directory, base_filename = os.path.split(self.Imagelist[i].Imagepath)
+                filename = os.path.splitext(base_filename)[0]
+                filepathImage = directory + '/' + filename + '_RegionsMap.png'
+                #print('path: ', directory, base_filename, filepathImage)
+                cv2.imwrite(filepathImage, im)
+                di, base_filename = os.path.split(filepathImage)
+                os.chdir(di)
+                zipf.write(base_filename) 
+                os.remove(filepathImage)
         zipf.close()
     
     def read_zipdb(self, filepath, StatusLine=None):
@@ -215,17 +241,20 @@ class BackgroundDetector(object):
             
             # Read RegionsClass
             node=image.getElementsByTagName('RegionsClass')
-            map_str=node[0].childNodes[0].nodeValue
-            map_list = map_str.split(',')
-            map_list=map_list[:-1]
-            map_list_img = []
-            for j in map_list:
-                map_list_img.append(BGClass(int(j)))
-            self.RegionsClass.append(map_list_img)
-            
+            if len(node[0].childNodes) > 0:
+                map_str=node[0].childNodes[0].nodeValue
+                map_list = map_str.split(',')
+                map_list=map_list[:-1]
+                map_list_img = []
+                for j in map_list:
+                    map_list_img.append(BGClass(int(j)))
+                self.RegionsClass.append(map_list_img)
+            else:
+                self.RegionsClass.append([])
+           
             # Read RegionsClass
             node=image.getElementsByTagName('RegionsDetected')
-            self.RegionsDetected.append(bool(node[0].childNodes[0].nodeValue))          
+            self.RegionsDetected.append(str2bool(node[0].childNodes[0].nodeValue)) 
             
         #self.RegionsList = self.createRegions(self.RegionsMap)
         self.RegionsList = [None] * len(images)

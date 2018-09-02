@@ -28,7 +28,7 @@ import logging
 import tensorflow as tf
 
 import util
-from layers import (weight_variable, weight_variable_devonc, bias_variable, conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2, cross_entropy)
+from unet.layers import (weight_variable, weight_variable_devonc, bias_variable, conv2d, deconv2d, max_pool, crop_and_concat, pixel_wise_softmax_2, cross_entropy)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 

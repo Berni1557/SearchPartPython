@@ -23,7 +23,7 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 
 import numpy as np
 #from tf_unet.image_util import BaseDataProvider
-from image_util import BaseDataProvider
+from unet.image_util import BaseDataProvider
 
 import cv2
 import scipy.misc
