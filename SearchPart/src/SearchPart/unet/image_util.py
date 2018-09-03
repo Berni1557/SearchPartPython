@@ -43,8 +43,8 @@ class BaseDataProvider(object):
         self.a_min = a_min if a_min is not None else -np.inf
         self.a_max = a_max if a_min is not None else np.inf
 
-    def _load_data_and_label(self):
-        data, label = self._next_data()
+    def _load_data_and_label(self, dataset='train'):
+        data, label = self._next_data(dataset)
             
         train_data = self._process_data(data)
         labels = self._process_labels(label)
@@ -83,8 +83,8 @@ class BaseDataProvider(object):
         """
         return data, labels
     
-    def __call__(self, n):
-        train_data, labels = self._load_data_and_label()
+    def __call__(self, n, dataset='train'):
+        train_data, labels = self._load_data_and_label(dataset)
         nx = train_data.shape[1]
         ny = train_data.shape[2]
     
@@ -94,7 +94,7 @@ class BaseDataProvider(object):
         X[0] = train_data
         Y[0] = labels
         for i in range(1, n):
-            train_data, labels = self._load_data_and_label()
+            train_data, labels = self._load_data_and_label(dataset)
             X[i] = train_data
             Y[i] = labels
         
@@ -124,7 +124,7 @@ class SimpleDataProvider(BaseDataProvider):
         self.n_class = n_class
         self.channels = channels
 
-    def _next_data(self):
+    def _next_data(self, dataset='train'):
         idx = np.random.choice(self.file_count)
         return self.data[idx], self.label[idx]
 
@@ -185,7 +185,7 @@ class ImageDataProvider(BaseDataProvider):
             if self.shuffle_data:
                 np.random.shuffle(self.data_files)
         
-    def _next_data(self):
+    def _next_data(self, dataset='train'):
         self._cylce_file()
         image_name = self.data_files[self.file_idx]
         label_name = image_name.replace(self.data_suffix, self.mask_suffix)

@@ -27,22 +27,33 @@ import timeit
 
 
 if __name__ == '__main__':
-    BGGenerator = BGDataGenerator('BGDataGenerator01')
-    BGGenerator.loadBGModel('H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/background/BG14.zip')
-    N_train = 500
-    N_test = 1
-    N_valid = 1
-    nx = 572 
-    ny = 572 
-    nimg = 12
-    BGGenerator.createData(N_train, N_test, N_valid, nx, ny, nimg)
     
+        
     model = DLModel()
     nx = 572
     ny = 572
-    model.init(nx, ny)
+    filepath = 'H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/background/BG12.zip'
+    model.init(nx, ny, filepath)
     model.train()
     model.test()
+    
+    image = cv2.imread('H:/Projects/SearchPartPython/SearchPartPython/SearchPart/data/background/SAM_0595.JPG')
+    image_pred = model.predict(image, 572, 572, 532, 532)
+    
+    cv2.imwrite('tmp1.png', image_pred)
+    
+    #cv2.namedWindow("Predict", cv2.WINDOW_NORMAL)
+    #cv2.imshow('Predict', image_pred) 
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+    
+    cv2.namedWindow("Prediction", cv2.WINDOW_NORMAL)
+    cv2.imshow('Prediction', image_pred) 
+    cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+    cv2.imshow('Image', image) 
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+        
         
     start = timeit.default_timer()
     for i in range(10):
@@ -52,6 +63,8 @@ if __name__ == '__main__':
         image8 = image.astype(np.uint8)
         cv2.namedWindow("Prediction", cv2.WINDOW_NORMAL)
         cv2.imshow('Prediction', image8) 
+        cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+        cv2.imshow('Image', model.prediction_img) 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     

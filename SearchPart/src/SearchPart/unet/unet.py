@@ -313,7 +313,8 @@ class Trainer(object):
         if self.optimizer == "momentum":
             learning_rate = self.opt_kwargs.pop("learning_rate", 0.2)
             decay_rate = self.opt_kwargs.pop("decay_rate", 0.95)
-            momentum = self.opt_kwargs.pop("momentum", 0.2)
+            momentum = self.opt_kwargs.pop("momentum", 0.1)
+            
             
             self.learning_rate_node = tf.train.exponential_decay(learning_rate=learning_rate, 
                                                         global_step=global_step, 

@@ -14,6 +14,7 @@ import cv2
 import scipy.misc
 from scipy.misc import imresize
 import math
+import random
 
 from random import randint
 
@@ -38,25 +39,28 @@ class BGDataGenerator(object):
     def loadBGModel(self, filepath):
         self.BGD.read_zipdb(filepath)
         
-    def createData(self, N_train, N_test, N_valid, nx, ny, nimg=0):
+    def createData(self, N_train, N_test, N_valid, N_img_train, N_img_test, N_img_valid, nx, ny, N_img):
         
         print('createData')
         if self.method == BGDataCreatorMethod.RANDOMSELECTION:
             
+            IdxImg = random.sample(list(range(0, N_img)), len(list(range(0, N_img))))
+            IdxTrain = IdxImg[0:N_img_train]
+            IdxTest = IdxImg[N_img_train:N_img_train+N_img_test]
+            IdxValid = IdxImg[N_img_train+N_img_test:N_img_train+N_img_test+N_img_valid]
+            
             Images=[]
             # Get images ans create image masks
-            for i in range(nimg):
+            for i in range(N_img):
                 im = self.BGD.Imagelist[i]
                 Images.append(im.image)
                 self.BGD.RegionsList[i] = self.BGD.createRegions(self.BGD.RegionsMap, i)
             
             dims_img = Images[0].shape
-            
-            print('shape:', len(self.BGD.RegionsList))
-            
+
             # Create masks       
             maskList=[]           
-            for i in range(nimg):
+            for i in range(N_img):
                 print('i:', i)
                 regions = self.BGD.RegionsList[i]
                 dims = Images[i].shape
@@ -98,7 +102,10 @@ class BGDataGenerator(object):
 
             # Create train data
             for i in range(N_train):
-                n = randint(0, nimg-1)
+                #print('N_img_train', N_img_train)
+                #print('IdxTrain', IdxTrain)
+                n = IdxTrain[randint(0, N_img_train-1)]
+                #print('n_train', n)
                 x = randint(bx1, bx2)
                 y = randint(by1, by2)
                 im = Images[n]
@@ -107,21 +114,12 @@ class BGDataGenerator(object):
                 mask = maskList[n]
                 crop_mask = mask[x-nx2:x+nx2, y-ny2:y+ny2]
                 self.data_train[1].append(crop_mask)
-                
-                
-#                cv2.namedWindow( "crop_img", cv2.WINDOW_NORMAL )               
-#                cv2.imshow('crop_img', crop_img)
-#                
-#                cv2.namedWindow( "mask", cv2.WINDOW_NORMAL )               
-#                crop_mask = crop_mask.astype(np.uint8)
-#                cv2.imshow('mask', crop_mask*255)
-#                cv2.waitKey(0)
-#                cv2.destroyAllWindows()
-
             
             # Create test data
             for i in range(N_test):
-                n = randint(0, nimg-1)
+                
+                n = IdxTest[randint(0, N_img_test-1)]
+                #print('n_test', n)
                 x = randint(bx1, bx2)
                 y = randint(by1, by2)
                 im = Images[n]
@@ -134,7 +132,9 @@ class BGDataGenerator(object):
                 
             # Create valid data
             for i in range(N_valid):
-                n = randint(0, nimg-1)
+                
+                n = IdxValid[randint(0, N_img_valid-1)]
+                #print('n_valid', n)
                 x = randint(bx1, bx2)
                 y = randint(by1, by2)
                 im = Images[n]
@@ -151,40 +151,59 @@ class BGDataProvider(BaseDataProvider):
     n_class = 2
     BGDataGen = BGDataGenerator('BGDataGenerator')
     
-    NumSample = 0
+    NumSample_train = 0
+    NumSample_test = 0
+    NumSample_valid = 0
     
-    def __init__(self, nx, ny, **kwargs):
+    def __init__(self, nx, ny, filepath):
         super(BGDataProvider, self).__init__()
         self.nx = nx
         self.ny = ny
-        self.kwargs = kwargs
-        rect = kwargs.get("rectangles", False)
-        if rect:
-            self.n_class=3
+        #self.kwargs = kwargs
+        
 
-    def _next_data(self):
-        data, label = self.create_image_and_label(self.nx, self.ny, **self.kwargs)
+        self.BGDataGen.loadBGModel(filepath)
+        N_train = 800
+        N_test = 100
+        N_valid = 100
+        
+        N_img = 33
+        N_img_train = 29
+        N_img_test = 3
+        N_img_valid = 1
+        #nx = 572 
+        #ny = 572 
+        
+        self.BGDataGen.createData(N_train, N_test, N_valid, N_img_train, N_img_test, N_img_valid, nx, ny, N_img)
+        
+        #rect = kwargs.get("rectangles", False)
+        #if rect:
+        #    self.n_class=3
+
+    def _next_data(self, dataset='train'):
+        data, label = self.create_image_and_label(self.nx, self.ny, dataset)
         return data, label
 
-    def create_image_and_label(self, nx,ny, cnt = 10, r_min = 5, r_max = 50, border = 92, sigma = 20, rectangles=False):
+    def create_image_and_label(self, nx, ny, dataset='train'):
         
-        dataset = 'train'
+        print('dataset: ', dataset)
+        
         if dataset == 'train':
-            image = self.BGDataGen.data_train[0][self.NumSample]
-            label = self.BGDataGen.data_train[1][self.NumSample]
-            self.NumSample = self.NumSample + 1    
+            image = self.BGDataGen.data_train[0][self.NumSample_train]
+            label = self.BGDataGen.data_train[1][self.NumSample_train]
+            self.NumSample_train = self.NumSample_train + 1    
             label = label.astype(bool)
             
         if dataset == 'test':
-            image = self.BGDataGen.data_test[0][self.NumSample]
-            label = self.BGDataGen.data_test[1][self.NumSample]
-            self.NumSample = self.NumSample + 1    
+            image = self.BGDataGen.data_test[0][self.NumSample_test]
+            label = self.BGDataGen.data_test[1][self.NumSample_test]
+            self.NumSample_test = self.NumSample_test + 1    
             label = label.astype(bool)
             
         if dataset == 'valid':
-            image = self.BGDataGen.data_valid[0][self.NumSample]
-            label = self.BGDataGen.data_valid[1][self.NumSample]
-            self.NumSample = self.NumSample + 1    
+            image = self.BGDataGen.data_valid[0][self.NumSample_valid]
+            label = self.BGDataGen.data_valid[1][self.NumSample_valid]
+            self.NumSample_valid = self.NumSample_valid + 1    
             label = label.astype(bool)
         
         #print('label5 shape', label.shape)
